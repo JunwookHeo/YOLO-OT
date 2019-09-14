@@ -102,3 +102,7 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+YOLOv3
+Dataset
+.vscode
+
