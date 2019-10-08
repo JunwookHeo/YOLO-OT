@@ -1,1 +1,4 @@
-# This is a project for object tracking using YOLO and LSTM.
+# YOT
+
+This is a project for object tracking using YOLO and LSTM.
+
