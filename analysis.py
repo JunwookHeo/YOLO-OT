@@ -99,14 +99,14 @@ def draw_anchor():
     import matplotlib.pyplot as plt
     import matplotlib.patches as patches
     
-    # anchors = [(10,13), (16,30), (33, 23)]
-    # G = (512/52, 512/52)
+    anchors = [(10,13), (16,30), (33, 23)]
+    G = (416/52, 416/52)
 
-    anchors = [(30,61), (62,45), (59, 119)]
-    G = (512/26, 512/26)
+    # anchors = [(30,61), (62,45), (59, 119)]
+    # G = (416/26, 416/26)
 
     # anchors = [(116,90), (156,198), (373, 326)]
-    # G = (512/13, 512/13)
+    # G = (416/13, 416/13)
 
     N = 7
     plt.figure()
@@ -128,4 +128,47 @@ def draw_anchor():
     plt.xlim((0, X))
     plt.show()
 
-draw_anchor()
+#draw_anchor()
+
+
+def heatmap_to_coordinates():
+    from sklearn.cluster import KMeans
+    import matplotlib.pyplot as plt
+    import numpy as np
+    
+    def coordinates_to_heatmap(coord):
+        heatmap= np.zeros((32, 32))
+        [x1, y1, x2, y2] = coord
+        for y in range(y1, y2):
+            for x in range(x1, x2):
+                heatmap[y][x] = 1
+        return heatmap
+
+    p1 = np.random.randint(0, 26, 2)
+    x2 = np.random.randint(p1[0]+1, 32, 1)
+    y2 = np.random.randint(p1[1]+1, 32, 1)
+
+    p = [p1[0], p1[1], x2[0], y2[0]]
+    X = coordinates_to_heatmap(p)
+
+    xlist = []
+    ylist = []
+    for x in range(32):
+        for y in range(32):
+            if(X[y][x] == 1):
+                xlist.append(x+0.5)
+                ylist.append(y+0.5)
+
+    ax = np.array(xlist)
+    ay = np.array(ylist)
+    xmean = ax.mean()
+    ymean = ay.mean()
+
+    xw = ax.std() * 1.4 + 0.5
+    yh = ay.std() * 1.4 + 0.5
+
+    print(p)
+    print("c1:{:f}, c2:{:f}, w:{:f}, h:{:f}".format(xmean, ymean, xw, yh))
+
+heatmap_to_coordinates()
+

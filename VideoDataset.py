@@ -54,9 +54,9 @@ class VideoDataset(Dataset):
         assert(img_size == img.shape[0])
         assert(img_size == img.shape[1])
 
-        #img = transforms.ToTensor()(img)
         img = img[:,:,::-1].transpose((2,0,1)).copy()
-        img = torch.from_numpy(img).float().div(255.0).unsqueeze(0)
+        img = torch.from_numpy(img).float().div(255.0)
+
         return img
 
     
