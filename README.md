@@ -9,8 +9,9 @@ This project aims to develop a neural network to track a tennis ball using YOLO 
 
 ## References
 
-https://github.com/Guanghan/ROLO
-https://github.com/eriklindernoren/PyTorch-YOLOv3.git
+https://github.com/Guanghan/ROLO  
+
+https://github.com/eriklindernoren/PyTorch-YOLOv3  
 
 
 
