@@ -6,6 +6,10 @@ This project aims to develop a neural network to track a tennis ball using YOLO 
 
 ![image](https://drive.google.com/uc?export=view&id=1_jzZorXM4jDXF6vEi4glhfyd-kOQKZsm)
 
+## Prerequisites
+
+Python 3.7  
+PyTorch 1.3  
 
 ## References
 
