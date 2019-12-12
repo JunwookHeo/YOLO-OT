@@ -106,3 +106,6 @@ YOLOv3
 Dataset
 .vscode
 
+# YOT 
+data/
+

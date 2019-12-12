@@ -19,7 +19,7 @@ class VideoDataset(Dataset):
         self.num_frames = int(self.cap.get(cv2.CAP_PROP_FRAME_COUNT))
 
     def __len__(self):
-        return 100#self.num_frames
+        return self.num_frames
 
     def __getitem__(self, idx):
         pos = idx
