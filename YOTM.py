@@ -64,7 +64,8 @@ class YOTM(nn.Module):
     def forward(self, x, l):
         out = self.yimgnet(x, l)
         out = self.lstmnet(out)
-     
+        out = out.view(out.size(0), -1)
+
         return out
         
     def get_optimizer(self, lr):

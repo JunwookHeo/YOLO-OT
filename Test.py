@@ -15,7 +15,6 @@ class Test(YOT_Base):
 
     
     def pre_proc(self):
-        # TODO: CNN to CNN + LSTM with a variable step number
         self.model = YOTM(self.batch_size, self.seq_len).to(self.device)
         self.model.eval()  # Set in evaluation mode
 

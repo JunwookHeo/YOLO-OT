@@ -23,6 +23,7 @@ class YOT_Base:
                 for frames, fis, locs, labels in dataLoader:
                     fis = Variable(fis.type(Tensor))
                     locs = Variable(locs.type(Tensor))
+                    labels = Variable(labels.type(Tensor))
                     
                     self.post_proc(pos, frames, fis, locs, labels)
                     pos += 1

@@ -17,6 +17,7 @@ class RoloDataset(Dataset):
         
         self.frames = sorted(glob.glob("%s/*.*" % os.path.join(path, 'images'))) 
         self.images= sorted(glob.glob("%s/*.*" % os.path.join(path, 'yot_out')))
+        
         with open(label, "r") as file:
             self.labels = file.readlines()
 
@@ -31,6 +32,13 @@ class RoloDataset(Dataset):
         image = torch.from_numpy(image)
         fi = image[0:128*52*52].reshape(128, 52, 52)
         loc = image[128*52*52:]
-        label = self.labels[idx]
-        
+        #label = self.labels[idx]
+        label = self.labels[idx].split('\t')   # for gt type 2
+        if len(label) < 4:
+            label = self.labels[idx].split(',') # for gt type 1
+        # TODO: Normalize coordnates
+        label.append(1) # confidence 
+
+        label = torch.as_tensor(np.array(label, dtype=int), dtype=torch.float32)
+
         return frame, fi, loc, label
