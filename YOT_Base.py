@@ -6,29 +6,35 @@ class YOT_Base:
     def __init__(self,argvs = []):
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-        self.batch_size = 1
-        self.num_sequence = 6
-        self.num_layers =3
+        self.batch_size = 6
+        self.seq_len = 1
         self.img_size = 416
 
 
     def run(self):
+        self.pre_proc()
+
         Tensor = torch.cuda.FloatTensor if torch.cuda.is_available() else torch.FloatTensor
 
         for epoch in range(1):
-            listContainer = ListContainer(self.path, self.batch_size, self.num_sequence, self.img_size)
+            listContainer = ListContainer(self.path, self.batch_size, self.seq_len, self.img_size)
             for dataLoader in listContainer:
                 pos = 0
-                for frames, imgs, labels in dataLoader:
-                    imgs = Variable(imgs.type(Tensor))
+                for frames, fis, locs, labels in dataLoader:
+                    fis = Variable(fis.type(Tensor))
+                    locs = Variable(locs.type(Tensor))
                     
-                    self.post_proc(pos, frames, imgs, labels)
+                    self.post_proc(pos, frames, fis, locs, labels)
                     pos += 1
-                    
-    def post_proc(self, pos, frames, imgs, labels):
-        loc = self.locations_normal(frames[0].shape[0], frames[0].shape[1], imgs[0][-5:-1])
-        print(pos, loc, labels[0])
+    
+    def pre_proc(self):
         pass
+
+    def post_proc(self, pos, frames, fis, locs, labels):
+        for frame, loc, label in zip(frames, locs, labels):
+            loc = self.locations_normal(frame.shape[0], frame.shape[1], loc[0:5])
+            print(pos, loc, label)
+        
     
     def locations_normal(self, wid, ht, locations):
         #print("location in func: ", locations)
