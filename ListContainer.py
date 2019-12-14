@@ -54,6 +54,7 @@ class ListContainer:
             shuffle=False,
             num_workers=0,
             pin_memory=True,
+            drop_last=True
         )
         
         return dataLoader        
