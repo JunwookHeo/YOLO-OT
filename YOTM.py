@@ -11,6 +11,7 @@ class ModelParam:
     InLstmSize = OutCnnSize + LocSize
     HiddenSize = 4096
     LayerSize = 3
+    OutputSize = 4
 
 
 class YimgNet(nn.Module):
@@ -41,7 +42,7 @@ class LstmNet(nn.Module):
         self.lstm = nn.LSTM(input_size=ModelParam.InLstmSize, hidden_size=ModelParam.HiddenSize, 
                             num_layers=ModelParam.LayerSize, batch_first=True)
 
-        self.fc = nn.Linear(ModelParam.HiddenSize, ModelParam.LocSize)
+        self.fc = nn.Linear(ModelParam.HiddenSize, ModelParam.OutputSize)
         self.h_0 = self.init_hidden()
 
     def init_hidden(self):

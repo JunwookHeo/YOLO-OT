@@ -170,5 +170,15 @@ def heatmap_to_coordinates():
     print(p)
     print("c1:{:f}, c2:{:f}, w:{:f}, h:{:f}".format(xmean, ymean, xw, yh))
 
-heatmap_to_coordinates()
+#heatmap_to_coordinates()
 
+def convert_tensor(x):
+    return x+10
+
+def test_tensor_list():
+    X = torch.tensor(np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]]))
+    for i, x in enumerate(X):
+        X[i] = convert_tensor(x)
+    print(X)
+
+test_tensor_list()

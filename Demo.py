@@ -23,17 +23,17 @@ class Demo:
             listContainer = ListContainer(self.path, self.batch_size, self.num_sequence, self.img_size)
             for dataLoader in listContainer:
                 print(dataLoader)
-                for frames, imgs, labels in dataLoader:
+                for frames, imgs, locs, labels in dataLoader:
                     imgs = Variable(imgs.to(self.device))
                     
-                    self.post_proc(frames, imgs, labels)
+                    self.post_proc(frames, imgs, locs, labels)
                     
-    def post_proc(self, frames, imgs, labels):
-        loc = self.locations_normal(frames[0].shape[0], frames[0].shape[1], imgs[0][-5:-1])
+    def post_proc(self, frames, imgs, locs, labels):
+        loc = self.normal_to_locations(frames[0].shape[0], frames[0].shape[1], locs[0][0:5])
         print(loc, labels[0])
         pass
     
-    def locations_normal(self, wid, ht, locations):
+    def normal_to_locations(self, wid, ht, locations):
         #print("location in func: ", locations)
         wid *= 1.0
         ht *= 1.0

@@ -36,9 +36,7 @@ class RoloDataset(Dataset):
         label = self.labels[idx].split('\t')   # for gt type 2
         if len(label) < 4:
             label = self.labels[idx].split(',') # for gt type 1
-        # TODO: Normalize coordnates
-        label.append(1) # confidence 
-
+        
         label = torch.as_tensor(np.array(label, dtype=int), dtype=torch.float32)
 
         return frame, fi, loc, label

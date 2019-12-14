@@ -33,11 +33,11 @@ class YOT_Base:
 
     def post_proc(self, pos, frames, fis, locs, labels):
         for frame, loc, label in zip(frames, locs, labels):
-            loc = self.locations_normal(frame.shape[0], frame.shape[1], loc[0:5])
+            loc = self.normal_to_locations(frame.shape[0], frame.shape[1], loc)
             print(pos, loc, label)
         
     
-    def locations_normal(self, wid, ht, locations):
+    def normal_to_locations(self, wid, ht, locations):
         #print("location in func: ", locations)
         wid *= 1.0
         ht *= 1.0
@@ -45,6 +45,16 @@ class YOT_Base:
         locations[1] *= ht
         locations[2] *= wid
         locations[3] *= ht
+        return locations
+
+    def locations_to_normal(self, wid, ht, locations):
+        #print("location in func: ", locations)
+        wid *= 1.0
+        ht *= 1.0
+        locations[0] /= wid
+        locations[1] /= ht
+        locations[2] /= wid
+        locations[3] /= ht
         return locations
 
     def load_dataset(self):
