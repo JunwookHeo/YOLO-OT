@@ -68,8 +68,10 @@ class ListContainer:
         self.labels = []
         self.lists = []
         for path in paths:
-            self.labels.append(os.path.join(path,"groundtruth_rect.txt"))
-            self.lists.append(path)
+            if os.path.exists(os.path.join(path,'yot_out')):
+                self.labels.append(os.path.join(path,"groundtruth_rect.txt"))
+                self.lists.append(path)
+
         
         self.loader = RoloLoader
 

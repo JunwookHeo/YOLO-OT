@@ -9,14 +9,13 @@ class YOT_Base:
         self.batch_size = 1
         self.seq_len = 6
         self.img_size = 416
+        self.epochs = 20
 
 
     def run(self):
         self.pre_proc()
 
-        Tensor = torch.cuda.FloatTensor if torch.cuda.is_available() else torch.FloatTensor
-
-        for epoch in range(1):
+        for epoch in range(self.epochs):
             listContainer = ListContainer(self.path, self.batch_size, self.seq_len, self.img_size)
             for dataLoader in listContainer:
                 pos = 0
@@ -25,13 +24,13 @@ class YOT_Base:
                     locs = Variable(locs.to(self.device))                    
                     labels = Variable(labels.to(self.device), requires_grad=False)
 
-                    self.post_proc(pos, frames, fis, locs, labels)
+                    self.post_proc(epoch, pos, frames, fis, locs, labels)
                     pos += 1
     
     def pre_proc(self):
         pass
 
-    def post_proc(self, pos, frames, fis, locs, labels):
+    def post_proc(self, epoch, pos, frames, fis, locs, labels):
         for frame, loc, label in zip(frames, locs, labels):
             loc = self.normal_to_locations(frame.shape[0], frame.shape[1], loc)
             print(pos, loc, label)

@@ -9,7 +9,7 @@ class Test(YOT_Base):
         # The path of dataset
         self.path = "data" 
 
-    def post_proc(self, pos, frames, fis, locs, labels):
+    def post_proc(self, epoch, pos, frames, fis, locs, labels):
         with torch.no_grad():
             outputs = self.model(fis.float(), locs.float())
             predicts = []
@@ -23,7 +23,7 @@ class Test(YOT_Base):
                 targets.append(l)
 
             for p, t in zip(predicts, targets):
-                print(pos, p, t)
+                print(epoch, pos, p, t)
                 
             iou = self.bbox_iou(torch.stack(predicts, dim=0),  torch.stack(targets, dim=0), False)            
             print("\tIOU : ", iou)

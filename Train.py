@@ -9,20 +9,17 @@ class Train(YOT_Base):
         super(Train, self).__init__(argvs)
         self.log_interval = 1
         # The path of dataset
-        self.path = "data" 
+        self.path = "../DATA" 
 
-    def post_proc(self, pos, frames, fis, locs, labels):
-        for i, (frame, label) in enumerate(zip(frames, labels)):
-            for j, (f, l) in enumerate(zip(frame, label)):
-                labels[i][j] = self.locations_to_normal(f.shape[0], f.shape[1], l)
-        
+    def post_proc(self, epoch, pos, frames, fis, locs, labels):
         outputs = self.model(fis.float(), locs.float())
 
         predicts = []
         targets = []
-        for i, (output, label) in enumerate(zip(outputs, labels)):
+        for i, (f, output, label) in enumerate(zip(frames, outputs, labels)):
             p = output[-1]
             l = label[-1]
+            p = self.normal_to_locations(f.shape[1], f.shape[2], p)
             predicts.append(p)
             targets.append(l)
 
@@ -32,9 +29,13 @@ class Train(YOT_Base):
         self.optimizer.zero_grad()
         
         if pos % self.log_interval == 0:
+            print('Train pos: {}-{} [Loss: {:.6f}]'.format(epoch, pos, loss.data))
+
             for p, t in zip(predicts, targets):
-                print(p, t)
-            print('Train pos: {} [Loss: {:.6f}]'.format(pos, loss.data))
+                print("\t", p, t)
+            iou = self.bbox_iou(torch.stack(predicts, dim=0),  torch.stack(targets, dim=0), False)            
+            print("\tIOU : ", iou)
+
 
     
     def pre_proc(self):        
