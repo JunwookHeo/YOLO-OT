@@ -6,8 +6,8 @@ class YOT_Base:
     def __init__(self,argvs = []):
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-        self.batch_size = 6
-        self.seq_len = 1
+        self.batch_size = 1
+        self.seq_len = 6
         self.img_size = 416
 
 
@@ -21,10 +21,10 @@ class YOT_Base:
             for dataLoader in listContainer:
                 pos = 0
                 for frames, fis, locs, labels in dataLoader:
-                    fis = Variable(fis.type(Tensor))
-                    locs = Variable(locs.type(Tensor))
-                    labels = Variable(labels.type(Tensor))
-                    
+                    fis = Variable(fis.to(self.device))
+                    locs = Variable(locs.to(self.device))                    
+                    labels = Variable(labels.to(self.device), requires_grad=False)
+
                     self.post_proc(pos, frames, fis, locs, labels)
                     pos += 1
     

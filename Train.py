@@ -12,18 +12,28 @@ class Train(YOT_Base):
         self.path = "data" 
 
     def post_proc(self, pos, frames, fis, locs, labels):
-        for i, (frame, l) in enumerate(zip(frames, labels)):
-            labels[i] = self.locations_to_normal(frame.shape[0], frame.shape[1], l)
+        for i, (frame, label) in enumerate(zip(frames, labels)):
+            for j, (f, l) in enumerate(zip(frame, label)):
+                labels[i][j] = self.locations_to_normal(f.shape[0], f.shape[1], l)
         
         outputs = self.model(fis.float(), locs.float())
 
-        loss = self.loss(outputs, labels)
+        predicts = []
+        targets = []
+        for i, (output, label) in enumerate(zip(outputs, labels)):
+            p = output[-1]
+            l = label[-1]
+            predicts.append(p)
+            targets.append(l)
+
+        loss = self.loss(torch.stack(predicts, dim=0), torch.stack(targets, dim=0))
         loss.backward()
         self.optimizer.step()
         self.optimizer.zero_grad()
-
-        print(labels, outputs)
+        
         if pos % self.log_interval == 0:
+            for p, t in zip(predicts, targets):
+                print(p, t)
             print('Train pos: {} [Loss: {:.6f}]'.format(pos, loss.data))
 
     

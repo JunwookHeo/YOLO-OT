@@ -10,7 +10,7 @@ class ModelParam:
     LocMapSize = 32*32
     InLstmSize = OutCnnSize + LocSize
     HiddenSize = 4096
-    LayerSize = 3
+    LayerSize = 1
     OutputSize = 4
 
 
@@ -24,13 +24,15 @@ class YimgNet(nn.Module):
         self.fc = nn.Linear(ModelParam.OutfiSize, ModelParam.OutCnnSize)
 
     def forward(self, x, l):
-        batch_size = x.size(0)
-        x = F.relu(self.conv1(x))
-        x = F.relu(self.conv2(x))
-        x = F.relu(self.conv3(x))
-        x = x.view(batch_size, -1)
-        x = self.fc(x)
-        out = torch.cat((x,l), 1)
+        batch_size, seq_size, C, H, W = x.size()
+        c_in = x.view(batch_size*seq_size, C, H, W)
+        c_in = F.relu(self.conv1(c_in))
+        c_in = F.relu(self.conv2(c_in))
+        c_in = F.relu(self.conv3(c_in))
+        c_in = c_in.view(batch_size*seq_size, -1)
+        c_in = self.fc(c_in)
+        c_out = c_in.view(batch_size, seq_size, -1)
+        out = torch.cat((c_out,l), 2)
         return out
 
 class LstmNet(nn.Module):
@@ -51,9 +53,9 @@ class LstmNet(nn.Module):
 
     def forward(self, x):
         x = x.view(x.size(0), self.seq_len, -1)
-        out, _ = self.lstm(x, self.h_0)
-        out = self.fc(out)
-        return out
+        c_out, _ = self.lstm(x, self.h_0)
+        c_out = self.fc(c_out)
+        return c_out
 
 
 class YOTM(nn.Module):
@@ -65,7 +67,7 @@ class YOTM(nn.Module):
     def forward(self, x, l):
         out = self.yimgnet(x, l)
         out = self.lstmnet(out)
-        out = out.view(out.size(0), -1)
+        out = out.view(out.size(0), out.size(1), -1)
 
         return out
         

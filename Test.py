@@ -12,17 +12,27 @@ class Test(YOT_Base):
     def post_proc(self, pos, frames, fis, locs, labels):
         with torch.no_grad():
             outputs = self.model(fis.float(), locs.float())
-            for i, (frame, output) in enumerate(zip(frames, outputs)):
-                outputs[i] = self.normal_to_locations(frame.shape[0], frame.shape[1], output.clamp(min=0))
+            predicts = []
+            targets = []
+            for i, (frame, output, label) in enumerate(zip(frames, outputs, labels)):
+                f = frame[-1]
+                o = output[-1]
+                l = label[-1]
+                p = self.normal_to_locations(f.size(0), f.size(1), o.clamp(min=0))
+                predicts.append(p)
+                targets.append(l)
 
-            print(pos, outputs, labels)
-            iou = self.bbox_iou(outputs, labels, False)
-            print("IOU : ", iou)
+            for p, t in zip(predicts, targets):
+                print(pos, p, t)
+                
+            iou = self.bbox_iou(torch.stack(predicts, dim=0),  torch.stack(targets, dim=0), False)            
+            print("\tIOU : ", iou)
 
     
     def pre_proc(self):
         self.model = YOTM(self.batch_size, self.seq_len).to(self.device)
         self.model.eval()  # Set in evaluation mode
+        print(self.model)
 
 
 def main(argvs):
