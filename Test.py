@@ -7,7 +7,7 @@ class Test(YOT_Base):
     def __init__(self,argvs = []):
         super(Test, self).__init__(argvs)
         # The path of dataset
-        self.path = "data" 
+        self.path = "../DATA" 
 
     def post_proc(self, epoch, pos, frames, fis, locs, labels):
         with torch.no_grad():
@@ -27,6 +27,8 @@ class Test(YOT_Base):
                 
             iou = self.bbox_iou(torch.stack(predicts, dim=0),  torch.stack(targets, dim=0), False)            
             print("\tIOU : ", iou)
+
+        return 0
 
     
     def pre_proc(self):

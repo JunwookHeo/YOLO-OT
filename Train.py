@@ -16,12 +16,14 @@ class Train(YOT_Base):
 
         predicts = []
         targets = []
+        frms = []
         for i, (f, output, label) in enumerate(zip(frames, outputs, labels)):
             p = output[-1]
             l = label[-1]
-            p = self.normal_to_locations(f.shape[1], f.shape[2], p)
+            l = self.locations_to_normal(f.shape[1], f.shape[2], l)
             predicts.append(p)
             targets.append(l)
+            frms.append(f)
 
         loss = self.loss(torch.stack(predicts, dim=0), torch.stack(targets, dim=0))
         loss.backward()
@@ -31,10 +33,15 @@ class Train(YOT_Base):
         if pos % self.log_interval == 0:
             print('Train pos: {}-{} [Loss: {:.6f}]'.format(epoch, pos, loss.data))
 
-            for p, t in zip(predicts, targets):
-                print("\t", p, t)
+            for f, p, t in zip(frms, predicts, targets):
+                print("\t", 
+                        self.normal_to_locations(f.shape[1], f.shape[2], p),
+                        self.normal_to_locations(f.shape[1], f.shape[2], t)
+                        )
             iou = self.bbox_iou(torch.stack(predicts, dim=0),  torch.stack(targets, dim=0), False)            
             print("\tIOU : ", iou)
+        
+        return loss
 
 
     
@@ -42,7 +49,7 @@ class Train(YOT_Base):
         self.model = YOTM(self.batch_size, self.seq_len).to(self.device)
 
         self.loss = nn.MSELoss(reduction='sum')
-        self.optimizer = torch.optim.Adam(self.model.parameters(), lr=0.0001)
+        self.optimizer = torch.optim.Adam(self.model.parameters(), lr=0.01)
 
         self.model.train()  # Set in training mode
 

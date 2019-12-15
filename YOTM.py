@@ -9,7 +9,7 @@ class ModelParam:
     LocSize = 5
     LocMapSize = 32*32
     InLstmSize = OutCnnSize + LocSize
-    HiddenSize = 4096
+    HiddenSize = 128 #4096
     LayerSize = 1
     OutputSize = 4
 
@@ -45,7 +45,7 @@ class LstmNet(nn.Module):
                             num_layers=ModelParam.LayerSize, batch_first=True)
 
         self.fc = nn.Linear(ModelParam.HiddenSize, ModelParam.OutputSize)
-        self.h_0 = self.init_hidden()
+        self.hidden = self.init_hidden()
 
     def init_hidden(self):
             return (Variable(torch.zeros(ModelParam.LayerSize, self.batch_size, ModelParam.HiddenSize)), 
@@ -53,7 +53,29 @@ class LstmNet(nn.Module):
 
     def forward(self, x):
         x = x.view(x.size(0), self.seq_len, -1)
-        c_out, _ = self.lstm(x, self.h_0)
+        c_out, _ = self.lstm(x, self.hidden)
+        c_out = self.fc(c_out)
+        return c_out
+
+class LstmNetTest(nn.Module):
+    def __init__(self, batch_size, seq_len):
+        super(LstmNetTest, self).__init__()
+        self.batch_size = batch_size
+        self.seq_len = seq_len
+
+        self.lstm = nn.LSTM(input_size=ModelParam.LocSize, hidden_size=ModelParam.HiddenSize, 
+                            num_layers=ModelParam.LayerSize, batch_first=True)
+
+        self.fc = nn.Linear(ModelParam.HiddenSize, ModelParam.OutputSize)
+        self.hidden = self.init_hidden()
+
+    def init_hidden(self):
+            return (Variable(torch.zeros(ModelParam.LayerSize, self.batch_size, ModelParam.HiddenSize)), 
+                Variable(torch.zeros(ModelParam.LayerSize, self.batch_size, ModelParam.HiddenSize)))
+
+    def forward(self, x):
+        x = x.view(x.size(0), self.seq_len, -1)
+        c_out, _ = self.lstm(x, self.hidden)
         c_out = self.fc(c_out)
         return c_out
 
@@ -62,11 +84,12 @@ class YOTM(nn.Module):
     def __init__(self, batch_size, seq_len):
         super(YOTM, self).__init__()
         self.yimgnet = YimgNet()
-        self.lstmnet = LstmNet(batch_size, seq_len)
+        self.lstmnet = LstmNetTest(batch_size, seq_len)
      
     def forward(self, x, l):
-        out = self.yimgnet(x, l)
-        out = self.lstmnet(out)
+        #out = self.yimgnet(x, l)
+        #out = self.lstmnet(out)
+        out = self.lstmnet(l)
         out = out.view(out.size(0), out.size(1), -1)
 
         return out

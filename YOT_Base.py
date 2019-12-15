@@ -6,16 +6,17 @@ class YOT_Base:
     def __init__(self,argvs = []):
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-        self.batch_size = 1
-        self.seq_len = 6
+        self.batch_size = 6
+        self.seq_len = 8
         self.img_size = 416
         self.epochs = 20
-
-
+        
     def run(self):
-        self.pre_proc()
+        self.pre_proc()        
+        TotalLoss = []
 
         for epoch in range(self.epochs):
+            totalloss = 0
             listContainer = ListContainer(self.path, self.batch_size, self.seq_len, self.img_size)
             for dataLoader in listContainer:
                 pos = 0
@@ -24,8 +25,11 @@ class YOT_Base:
                     locs = Variable(locs.to(self.device))                    
                     labels = Variable(labels.to(self.device), requires_grad=False)
 
-                    self.post_proc(epoch, pos, frames, fis, locs, labels)
+                    totalloss += self.post_proc(epoch, pos, frames, fis, locs, labels)
                     pos += 1
+
+            TotalLoss.append(totalloss)        
+            print("Total Loss", TotalLoss)
     
     def pre_proc(self):
         pass
