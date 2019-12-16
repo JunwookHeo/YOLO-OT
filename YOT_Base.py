@@ -30,6 +30,7 @@ class YOT_Base:
 
             TotalLoss.append(totalloss)        
             print("Total Loss", TotalLoss)
+        print("Model", self.model)
     
     def pre_proc(self):
         pass

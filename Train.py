@@ -2,14 +2,16 @@ import torch
 import torch.nn.functional as F
 
 from YOT_Base import YOT_Base
-from YOTM import *
+from YOTMLLP import *
+from YOTMCLP import *
+from YOTMCLS import *
 
 class Train(YOT_Base):
     def __init__(self,argvs = []):
         super(Train, self).__init__(argvs)
         self.log_interval = 1
         # The path of dataset
-        self.path = "../DATA" 
+        self.path = "../rolo_data" 
 
     def post_proc(self, epoch, pos, frames, fis, locs, labels):
         outputs = self.model(fis.float(), locs.float())
@@ -41,12 +43,14 @@ class Train(YOT_Base):
             iou = self.bbox_iou(torch.stack(predicts, dim=0),  torch.stack(targets, dim=0), False)            
             print("\tIOU : ", iou)
         
-        return loss
+        return loss.data
 
 
     
     def pre_proc(self):        
-        self.model = YOTM(self.batch_size, self.seq_len).to(self.device)
+        #self.model = YOTMLLP(self.batch_size, self.seq_len).to(self.device)
+        self.model = YOTMCLP(self.batch_size, self.seq_len).to(self.device)
+        #self.model = YOTMCLS(self.batch_size, self.seq_len).to(self.device)
 
         self.loss = nn.MSELoss(reduction='sum')
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=0.01)
