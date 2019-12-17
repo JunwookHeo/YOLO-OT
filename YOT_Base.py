@@ -1,8 +1,10 @@
 # YOT_Base class
+
+from abc import ABC, abstractmethod
 from torch.autograd import Variable
 from ListContainer import *
 
-class YOT_Base:
+class YOT_Base(ABC):
     def __init__(self,argvs = []):
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -11,12 +13,14 @@ class YOT_Base:
         self.img_size = 416
         self.epochs = 20
         
-    def run(self):
-        self.pre_proc()        
-        TotalLoss = []
+        self.check_path = "outputs/checkpoint"
+        self.weights_path = "outputs/weights"
 
-        for epoch in range(self.epochs):
-            totalloss = 0
+    def proc(self):
+        self.pre_proc()
+
+        for epoch in range(self.epochs):            
+            self.initialize_proc(epoch)
             listContainer = ListContainer(self.path, self.batch_size, self.seq_len, self.img_size)
             for dataLoader in listContainer:
                 pos = 0
@@ -25,21 +29,32 @@ class YOT_Base:
                     locs = Variable(locs.to(self.device))                    
                     labels = Variable(labels.to(self.device), requires_grad=False)
 
-                    totalloss += self.post_proc(epoch, pos, frames, fis, locs, labels)
+                    self.processing(epoch, pos, frames, fis, locs, labels)
                     pos += 1
 
-            TotalLoss.append(totalloss)        
-            print("Total Loss", TotalLoss)
-        print("Model", self.model)
+            self.finalize_proc(epoch)
+        
+        self.post_proc()
     
+    @abstractmethod
     def pre_proc(self):
         pass
 
-    def post_proc(self, epoch, pos, frames, fis, locs, labels):
-        for frame, loc, label in zip(frames, locs, labels):
-            loc = self.normal_to_locations(frame.shape[0], frame.shape[1], loc)
-            print(pos, loc, label)
+    @abstractmethod
+    def processing(self, epoch, pos, frames, fis, locs, labels):
+        pass
+
+    @abstractmethod
+    def post_proc(self):
+        pass
         
+    @abstractmethod
+    def initialize_proc(self, epoch):
+        pass
+
+    @abstractmethod
+    def finalize_proc(self, epoch):
+        pass
     
     def normal_to_locations(self, wid, ht, locations):
         #print("location in func: ", locations)
@@ -93,10 +108,4 @@ class YOT_Base:
 
         return iou
 
-
-    def load_dataset(self):
-        pass
-    
-    def build_model(self):
-        pass
 

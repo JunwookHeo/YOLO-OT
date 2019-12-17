@@ -1,7 +1,7 @@
 import torch
 
 from YOT_Base import YOT_Base
-from YOTM import *
+from YOTMCLP import *
 
 class Test(YOT_Base):
     def __init__(self,argvs = []):
@@ -9,7 +9,9 @@ class Test(YOT_Base):
         # The path of dataset
         self.path = "../rolo_data" 
 
-    def post_proc(self, epoch, pos, frames, fis, locs, labels):
+        self.epochs = 1
+
+    def processing(self, epoch, pos, frames, fis, locs, labels):
         with torch.no_grad():
             outputs = self.model(fis.float(), locs.float())
             predicts = []
@@ -32,14 +34,24 @@ class Test(YOT_Base):
 
     
     def pre_proc(self):
-        self.model = YOTM(self.batch_size, self.seq_len).to(self.device)
+        self.model = YOTMCLP(self.batch_size, self.seq_len).to(self.device)
+        self.model.load_weights(self.model, self.weights_path)
         self.model.eval()  # Set in evaluation mode
+
         print(self.model)
 
+    def post_proc(self):
+        pass
+
+    def initialize_proc(self, epoch):
+        pass
+
+    def finalize_proc(self, epoch):
+        pass
 
 def main(argvs):
     test = Test(argvs)
-    test.run()
+    test.proc()
 
 if __name__=='__main__':
     main('')

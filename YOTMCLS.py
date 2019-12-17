@@ -2,6 +2,8 @@ import torch
 import torch.nn as nn
 from torch.autograd import Variable
 import torch.nn.functional as F
+from YOTM import *
+
 class CLSMParam:
     InfiSize = 128*52*52
     OutfiSize = 36
@@ -60,7 +62,7 @@ class LstmNet(nn.Module):
         c_out = self.fc(c_out)
         return c_out
 
-class YOTMCLS(nn.Module):
+class YOTMCLS(YOTM):
     def __init__(self, batch_size, seq_len):
         super(YOTMCLS, self).__init__()
         self.yimgnet = YimgNet()
@@ -73,11 +75,14 @@ class YOTMCLS(nn.Module):
 
         return out
         
-    def get_optimizer(self, lr):
-        self.optimizer = torch.optim.Adam(self.lstm.parameters(), lr=lr)
-        return self.optimizer
+    def save_checkpoint(self, model, optimizer, path):
+        super().save_checkpoint(model, optimizer, path, 'yotmcls.pth')
 
-    def get_loss_function(self):
-        self.loss = torch.nn.MSELoss()
-        return self.loss
+    def load_checkpoint(self, model, optimizer, path):
+        super().load_checkpoint(model, optimizer, path, 'yotmcls.pth')
 
+    def save_weights(self, model, path):
+        super().save_weights(model, path, 'yotmcls.weights')
+
+    def load_weights(self, model, path):
+        super().load_weights(model, path, 'yotmcls.weights')
