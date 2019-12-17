@@ -6,12 +6,12 @@ from YOTM import *
 
 class CLSMParam:
     InfiSize = 128*52*52
-    OutfiSize = 36
+    OutfiSize = 4*4
     OutCnnSize = 5 #8192
     LocSize = 5
     LocMapSize = 32*32
-    InLstmSize = OutCnnSize + LocSize
-    HiddenSize = 8 #4096
+    InLstmSize = OutCnnSize #+ LocSize
+    HiddenSize = 4 #4096
     LayerSize = 1
     OutputSize = 4
 
@@ -19,26 +19,27 @@ class CLSMParam:
 class YimgNet(nn.Module):
     def __init__(self):
         super(YimgNet, self).__init__()
-
-        self.conv1 = nn.Conv2d(128, 16, kernel_size=1)
-        self.conv2 = nn.Conv2d(16, 32, kernel_size=3, stride=2, padding=1)
-        self.conv3 = nn.Conv2d(32, 4, kernel_size=1)
+        self.conv1 = nn.Conv2d(128, 64, kernel_size=3, stride=2, padding=1)
+        self.conv2 = nn.Conv2d(64, 32, kernel_size=3, stride=2, padding=1)
+        self.conv3 = nn.Conv2d(32, 16, kernel_size=3, stride=2, padding=1)
+        self.conv4 = nn.Conv2d(16, 4, kernel_size=3, stride=2, padding=1)
+        self.conv5 = nn.Conv2d(4, 1, kernel_size=1)
         self.fc = nn.Linear(CLSMParam.OutfiSize, CLSMParam.OutCnnSize)
 
     def forward(self, x, l):
         batch_size, seq_size, C, H, W = x.size()
         c_in = x.view(batch_size*seq_size, C, H, W)
         c_in = F.relu(self.conv1(c_in))
-        c_in = F.max_pool2d(c_in, kernel_size=2, stride=2)
         c_in = F.relu(self.conv2(c_in))
-        c_in = F.max_pool2d(c_in, kernel_size=2, stride=2)
         c_in = F.relu(self.conv3(c_in))
-        c_in = F.max_pool2d(c_in, kernel_size=2, stride=2)
+        c_in = F.relu(self.conv4(c_in))
+        c_in = F.relu(self.conv5(c_in))
         c_in = c_in.view(batch_size*seq_size, -1)
         c_in = F.relu(self.fc(c_in))
         c_out = c_in.view(batch_size, seq_size, -1)
-        out = torch.cat((c_out,l), 2)
-        return out
+        #c_out = torch.cat((c_out,l), 2)
+        c_out = c_out + l
+        return c_out
 
 class LstmNet(nn.Module):
     def __init__(self, batch_size, seq_len):

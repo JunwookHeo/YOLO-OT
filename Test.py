@@ -1,6 +1,9 @@
 import torch
+import cv2
 
 from YOT_Base import YOT_Base
+from YOTMCLS import *
+from YOTMLLP import *
 from YOTMCLP import *
 
 class Test(YOT_Base):
@@ -10,31 +13,39 @@ class Test(YOT_Base):
         self.path = "../rolo_data" 
 
         self.epochs = 1
+        self.batch_size = 1
+        self.Total_Iou = 0
 
     def processing(self, epoch, pos, frames, fis, locs, labels):
         with torch.no_grad():
             outputs = self.model(fis.float(), locs.float())
             predicts = []
             targets = []
-            for i, (frame, output, label) in enumerate(zip(frames, outputs, labels)):
+            yolo_targets = []
+            img_frames = []
+            for i, (frame, output, loc, label) in enumerate(zip(frames, outputs, locs, labels)):
                 f = frame[-1]
                 o = output[-1]
                 l = label[-1]
+                y = loc[-1]
                 p = self.normal_to_locations(f.size(0), f.size(1), o.clamp(min=0))
+                y = self.normal_to_locations(f.size(0), f.size(1), y.clamp(min=0))
                 predicts.append(p)
                 targets.append(l)
+                yolo_targets.append(y)
+                img_frames.append(f)
 
-            for p, t in zip(predicts, targets):
-                print(epoch, pos, p, t)
+            self.display_frame(img_frames, yolo_targets, predicts, targets)
                 
             iou = self.bbox_iou(torch.stack(predicts, dim=0),  torch.stack(targets, dim=0), False)            
             print("\tIOU : ", iou)
-
-        return 0
-
+            self.Total_Iou += torch.sum(iou)
     
     def pre_proc(self):
-        self.model = YOTMCLP(self.batch_size, self.seq_len).to(self.device)
+        self.model = YOTMCLS(self.batch_size, self.seq_len).to(self.device)
+        #self.model = YOTMLLP(self.batch_size, self.seq_len).to(self.device)
+        #self.model = YOTMCLP(self.batch_size, self.seq_len).to(self.device)
+
         self.model.load_weights(self.model, self.weights_path)
         self.model.eval()  # Set in evaluation mode
 
@@ -44,10 +55,29 @@ class Test(YOT_Base):
         pass
 
     def initialize_proc(self, epoch):
-        pass
+        self.Total_Iou = 0
 
     def finalize_proc(self, epoch):
-        pass
+        print("Total IOU : ", self.Total_Iou)
+
+    def display_frame(self, fs, ys, ps, ts):
+        def draw_rectangle(f, p, c, l):
+            img = f.numpy()
+            c1 = (p[0].int(), p[1].int())
+            c2 = (p[0].int() + p[2].int(), p[1].int() + p[3].int())
+            cv2.rectangle(img, c1, c2, c, l)
+            cv2.imshow("frame", img)
+            cv2.waitKey(1)
+
+        for f, y, p, t in zip(fs, ys, ps, ts):
+            # Draw rectangle from prediction of YOLO
+            draw_rectangle(f, y, (0, 0, 255), 1)
+            # Draw rectangle from prediction of YOT
+            draw_rectangle(f, p, (0, 255, 0), 1)
+            # Draw rectangle from Target
+            draw_rectangle(f, t, (255, 0, 0), 1)
+        
+        
 
 def main(argvs):
     test = Test(argvs)

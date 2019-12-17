@@ -7,12 +7,12 @@ from YOTM import *
 
 class CLPMParam:
     InfiSize = 128*52*52
-    OutfiSize = 4*4*4 #64*26*26
-    OutCnnSize = 16 #8192
+    OutfiSize = 4*4 #64*26*26
+    OutCnnSize = 4 #8192
     LocSize = 5
     LocMapSize = 32*32
     InLstmSize = LocSize
-    HiddenSize = 16 #4096
+    HiddenSize = 4 #4096
     LayerSize = 1
     OutputSize = 4
 
@@ -37,7 +37,8 @@ class YimgNet(nn.Module):
         c_in = F.relu(self.conv3(c_in))
         c_in = F.relu(self.conv4(c_in))
         c_in = F.relu(self.conv5(c_in))
-
+        c_in = c_in.view(batch_size*seq_size, -1)
+        c_in = self.fc(c_in)
         c_out = c_in.view(batch_size, seq_size, -1)
         return c_out
 

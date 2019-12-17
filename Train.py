@@ -14,7 +14,7 @@ class Train(YOT_Base):
         self.path = "../rolo_data"         
         
         self.TotalLoss = []
-        self.epochs = 2
+        self.epochs = 40
 
     def processing(self, epoch, pos, frames, fis, locs, labels):
         outputs = self.model(fis.float(), locs.float())
@@ -30,7 +30,8 @@ class Train(YOT_Base):
             targets.append(l)
             frms.append(f)
 
-        loss = self.loss(torch.stack(predicts, dim=0), torch.stack(targets, dim=0))
+        #loss = self.loss(torch.stack(predicts, dim=0), torch.stack(targets, dim=0))
+        loss = self.my_loss(frms, torch.stack(predicts, dim=0), torch.stack(targets, dim=0))
         loss.backward()
         self.optimizer.step()
         self.optimizer.zero_grad()
@@ -48,10 +49,18 @@ class Train(YOT_Base):
         
         self.sum_loss += loss.data
     
+    def my_loss(self, frms, predicts, targets):
+        for f, p, t in zip(frms, predicts, targets):
+            self.normal_to_locations(f.shape[1], f.shape[2], p)
+            self.normal_to_locations(f.shape[1], f.shape[2], t)
+
+        iou = self.bbox_iou(predicts, targets, False)
+        return torch.sum(1-iou)
+
     def pre_proc(self):        
         #self.model = YOTMLLP(self.batch_size, self.seq_len).to(self.device)
-        self.model = YOTMCLP(self.batch_size, self.seq_len).to(self.device)
-        #self.model = YOTMCLS(self.batch_size, self.seq_len).to(self.device)
+        #self.model = YOTMCLP(self.batch_size, self.seq_len).to(self.device)
+        self.model = YOTMCLS(self.batch_size, self.seq_len).to(self.device)
 
         self.loss = nn.MSELoss(reduction='sum')
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=0.01)

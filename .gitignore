@@ -109,4 +109,5 @@ Dataset
 # YOT 
 data/
 outputs/
+outputs_*/
 
