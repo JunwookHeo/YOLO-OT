@@ -24,12 +24,13 @@ class YOT_Base(ABC):
             listContainer = ListContainer(self.path, self.batch_size, self.seq_len, self.img_size)
             for dataLoader in listContainer:
                 pos = 0
-                for frames, fis, locs, labels in dataLoader:
+                for frames, fis, locs, locs_mp, labels in dataLoader:
                     fis = Variable(fis.to(self.device))
-                    locs = Variable(locs.to(self.device))                    
+                    locs = Variable(locs.to(self.device))
+                    locs_mp = Variable(locs_mp.to(self.device)) 
                     labels = Variable(labels.to(self.device), requires_grad=False)
 
-                    self.processing(epoch, pos, frames, fis, locs, labels)
+                    self.processing(epoch, pos, frames, fis, locs, locs_mp, labels)
                     pos += 1
 
             self.finalize_proc(epoch)
@@ -41,7 +42,7 @@ class YOT_Base(ABC):
         pass
 
     @abstractmethod
-    def processing(self, epoch, pos, frames, fis, locs, labels):
+    def processing(self, epoch, pos, frames, fis, locs, locs_mp, labels):
         pass
 
     @abstractmethod

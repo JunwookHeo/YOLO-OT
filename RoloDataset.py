@@ -5,7 +5,7 @@ import numpy as np
 from PIL import Image
 
 from torch.utils.data import Dataset, DataLoader
-
+from coord_utils import *
 
 class RoloDataset(Dataset):
     """ Loading frames in a video file """
@@ -30,6 +30,7 @@ class RoloDataset(Dataset):
         frames = []
         fis = []
         locs = []
+        locs_mp = []
         labels = []
         
         for i in range(self.seq_num):
@@ -41,6 +42,7 @@ class RoloDataset(Dataset):
             image = torch.from_numpy(image)
             fi = image[0:128*52*52].reshape(128, 52, 52)
             loc = image[128*52*52:]
+            loc_mp = coord_utils.locations_to_probability_map(16, loc)
             #label = self.labels[pos]
             label = self.labels[pos].split('\t')   # for gt type 2
             if len(label) < 4:
@@ -51,6 +53,8 @@ class RoloDataset(Dataset):
             frames.append(frame)
             fis.append(fi)
             locs.append(loc)
+            locs_mp.append(loc_mp)
             labels.append(label)
         
-        return torch.stack(frames, dim=0), torch.stack(fis, dim=0), torch.stack(locs, dim=0), torch.stack(labels, dim=0)
+        return torch.stack(frames, dim=0), torch.stack(fis, dim=0), torch.stack(locs, dim=0), torch.stack(locs_mp, dim=0), torch.stack(labels, dim=0)
+

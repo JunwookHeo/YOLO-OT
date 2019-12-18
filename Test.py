@@ -6,6 +6,10 @@ from YOTMCLS import *
 from YOTMLLP import *
 from YOTMCLP import *
 
+from YOTMCLS_PM import *
+
+from coord_utils import *
+
 class Test(YOT_Base):
     def __init__(self,argvs = []):
         super(Test, self).__init__(argvs)
@@ -15,10 +19,15 @@ class Test(YOT_Base):
         self.epochs = 1
         self.batch_size = 1
         self.Total_Iou = 0
+        self.pm_size = 16
 
-    def processing(self, epoch, pos, frames, fis, locs, labels):
-        with torch.no_grad():
-            outputs = self.model(fis.float(), locs.float())
+    def processing(self, epoch, pos, frames, fis, locs, locs_mp, labels):
+        with torch.no_grad():            
+            if(self.pm_size > 0):
+                outputs = self.model(fis.float(), locs_mp.float()) 
+            else:
+                outputs = self.model(fis.float(), locs.float())
+
             predicts = []
             targets = []
             yolo_targets = []
@@ -28,8 +37,10 @@ class Test(YOT_Base):
                 o = output[-1]
                 l = label[-1]
                 y = loc[-1]
-                p = self.normal_to_locations(f.size(0), f.size(1), o.clamp(min=0))
-                y = self.normal_to_locations(f.size(0), f.size(1), y.clamp(min=0))
+                if(self.pm_size > 0):
+                    o = coord_utils.probability_map_to_locations(self.pm_size, o)
+                p = coord_utils.normal_to_locations(f.size(0), f.size(1), o.clamp(min=0))
+                y = coord_utils.normal_to_locations(f.size(0), f.size(1), y.clamp(min=0))
                 predicts.append(p)
                 targets.append(l)
                 yolo_targets.append(y)
@@ -42,9 +53,13 @@ class Test(YOT_Base):
             self.Total_Iou += torch.sum(iou)
     
     def pre_proc(self):
-        self.model = YOTMCLS(self.batch_size, self.seq_len).to(self.device)
-        #self.model = YOTMLLP(self.batch_size, self.seq_len).to(self.device)
-        #self.model = YOTMCLP(self.batch_size, self.seq_len).to(self.device)
+        if(self.pm_size > 0):         
+            self.model = YOTMCLS_PM(self.batch_size, self.seq_len).to(self.device)
+        else:
+            #self.model = YOTMLLP(self.batch_size, self.seq_len).to(self.device)
+            #self.model = YOTMCLP(self.batch_size, self.seq_len).to(self.device)
+            self.model = YOTMCLS(self.batch_size, self.seq_len).to(self.device)
+       
 
         self.model.load_weights(self.model, self.weights_path)
         self.model.eval()  # Set in evaluation mode
