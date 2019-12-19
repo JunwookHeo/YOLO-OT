@@ -41,6 +41,10 @@ class Test(YOT_Base):
                 y = loc[-1]
                 if(self.pm_size > 0):
                     o = coord_utils.probability_map_to_locations(self.pm_size, o)
+                
+                t = torch.split(y, 4, dim=0)
+                o = t[0].float()*t[1].float() + o*(1-t[1].float())
+
                 p = coord_utils.normal_to_locations(f.size(0), f.size(1), o.clamp(min=0))
                 y = coord_utils.normal_to_locations(f.size(0), f.size(1), y.clamp(min=0))
                 predicts.append(p)
@@ -48,8 +52,7 @@ class Test(YOT_Base):
                 yolo_targets.append(y)
                 img_frames.append(f)
 
-            if(pos > 135):
-                self.display_frame(img_frames, yolo_targets, predicts, targets)
+            self.display_frame(img_frames, yolo_targets, predicts, targets)
                 
             iou = self.bbox_iou(torch.stack(predicts, dim=0),  torch.stack(targets, dim=0), False)            
             print(f"\t{pos} IOU : ", iou)
@@ -96,7 +99,7 @@ class Test(YOT_Base):
             draw_rectangle(img, t, (0, 0, 255), 1)
 
             cv2.imshow("frame", img)
-            cv2.waitKey(0)
+            cv2.waitKey(1)
         
         
 

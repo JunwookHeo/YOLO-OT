@@ -42,14 +42,15 @@ class YOTMONEL(YOTM):
         self.lstmlnet = OneLNet(batch_size, seq_len)
      
     def forward(self, x, l):
+        batch_size, seq_size, _ = l.size()        
         out = self.lstmlnet(x, l)
-
+        '''
+        out = out.view(batch_size * seq_size, -1)
         l = l.view(l.size(0) * l.size(1), -1)
         t = torch.split(l, 4, dim=1)
         out = t[0]*t[1] + out*(1-t[1])
-
-        out = out.view(out.size(0), out.size(1), -1)
-
+        out = out.view(batch_size, seq_size, -1)
+        '''
         return out
         
     def save_checkpoint(self, model, optimizer, path):
