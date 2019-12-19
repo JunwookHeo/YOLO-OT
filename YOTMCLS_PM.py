@@ -76,13 +76,13 @@ class YOTMCLS_PM(YOTM):
         return out
         
     def save_checkpoint(self, model, optimizer, path):
-        super().save_checkpoint(model, optimizer, path, 'yotmcls.pth')
+        super().save_checkpoint(model, optimizer, path, 'yotmcls_pm.pth')
 
     def load_checkpoint(self, model, optimizer, path):
-        super().load_checkpoint(model, optimizer, path, 'yotmcls.pth')
+        super().load_checkpoint(model, optimizer, path, 'yotmcls_pm.pth')
 
     def save_weights(self, model, path):
-        super().save_weights(model, path, 'yotmcls.weights')
+        super().save_weights(model, path, 'yotmcls_pm.weights')
 
     def load_weights(self, model, path):
-        super().load_weights(model, path, 'yotmcls.weights')
+        super().load_weights(model, path, 'yotmcls_pm.weights')

@@ -43,7 +43,7 @@ class coord_utils:
         xmean = ax.mean()
         ymean = ay.mean()
 
-        k = np.sqrt(2)
+        k = 2.5 #np.sqrt(2)
         w = ax.std() * k + 0.5
         h = ay.std() * k + 0.5
 

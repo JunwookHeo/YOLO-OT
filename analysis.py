@@ -181,4 +181,17 @@ def test_tensor_list():
         X[i] = convert_tensor(x)
     print(X)
 
-test_tensor_list()
+#test_tensor_list()
+
+def test_tensor_sum():
+    p = torch.tensor(np.array([[10, 10, 10, 10, 0.9], [10, 10, 10, 10, 0.8]]), dtype=torch.float32)
+    a = torch.split(p, 4, dim=1)
+    t = torch.tensor(np.array([[20, 20, 20, 20], [20, 20, 20, 20]]), dtype=torch.float32)
+    #c = 0.1
+    S = a[0]*a[1] + t*(1-a[1])
+
+    print(S)
+
+test_tensor_sum()
+
+

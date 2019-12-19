@@ -9,7 +9,7 @@ class YOT_Base(ABC):
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
         self.batch_size = 6
-        self.seq_len = 8
+        self.seq_len = 6
         self.img_size = 416
         self.epochs = 20
         

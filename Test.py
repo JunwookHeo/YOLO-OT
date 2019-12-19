@@ -5,6 +5,7 @@ from YOT_Base import YOT_Base
 from YOTMCLS import *
 from YOTMLLP import *
 from YOTMCLP import *
+from YOTMONEL import *
 
 from YOTMCLS_PM import *
 
@@ -19,7 +20,8 @@ class Test(YOT_Base):
         self.epochs = 1
         self.batch_size = 1
         self.Total_Iou = 0
-        self.pm_size = 16
+        self.Total_cnt = 0
+        self.pm_size = 0 #16
 
     def processing(self, epoch, pos, frames, fis, locs, locs_mp, labels):
         with torch.no_grad():            
@@ -46,11 +48,13 @@ class Test(YOT_Base):
                 yolo_targets.append(y)
                 img_frames.append(f)
 
-            self.display_frame(img_frames, yolo_targets, predicts, targets)
+            if(pos > 135):
+                self.display_frame(img_frames, yolo_targets, predicts, targets)
                 
             iou = self.bbox_iou(torch.stack(predicts, dim=0),  torch.stack(targets, dim=0), False)            
-            print("\tIOU : ", iou)
+            print(f"\t{pos} IOU : ", iou)
             self.Total_Iou += torch.sum(iou)
+            self.Total_cnt += len(iou) 
     
     def pre_proc(self):
         if(self.pm_size > 0):         
@@ -58,8 +62,8 @@ class Test(YOT_Base):
         else:
             #self.model = YOTMLLP(self.batch_size, self.seq_len).to(self.device)
             #self.model = YOTMCLP(self.batch_size, self.seq_len).to(self.device)
-            self.model = YOTMCLS(self.batch_size, self.seq_len).to(self.device)
-       
+            #self.model = YOTMCLS(self.batch_size, self.seq_len).to(self.device)
+            self.model = YOTMONEL(self.batch_size, self.seq_len).to(self.device)       
 
         self.model.load_weights(self.model, self.weights_path)
         self.model.eval()  # Set in evaluation mode
@@ -71,26 +75,28 @@ class Test(YOT_Base):
 
     def initialize_proc(self, epoch):
         self.Total_Iou = 0
+        self.Total_cnt = 0
 
     def finalize_proc(self, epoch):
-        print("Total IOU : ", self.Total_Iou)
+        print("Avg IOU : ", self.Total_Iou/self.Total_cnt)
 
     def display_frame(self, fs, ys, ps, ts):
-        def draw_rectangle(f, p, c, l):
-            img = f.numpy()
+        def draw_rectangle(img, p, c, l):            
             c1 = (p[0].int(), p[1].int())
             c2 = (p[0].int() + p[2].int(), p[1].int() + p[3].int())
             cv2.rectangle(img, c1, c2, c, l)
-            cv2.imshow("frame", img)
-            cv2.waitKey(1)
 
         for f, y, p, t in zip(fs, ys, ps, ts):
+            img = f.numpy()
             # Draw rectangle from prediction of YOLO
-            draw_rectangle(f, y, (0, 0, 255), 1)
+            draw_rectangle(img, y, (255, 0, 0), 2)
             # Draw rectangle from prediction of YOT
-            draw_rectangle(f, p, (0, 255, 0), 1)
+            draw_rectangle(img, p, (0, 255, 0), 2)
             # Draw rectangle from Target
-            draw_rectangle(f, t, (255, 0, 0), 1)
+            draw_rectangle(img, t, (0, 0, 255), 1)
+
+            cv2.imshow("frame", img)
+            cv2.waitKey(0)
         
         
 

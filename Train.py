@@ -5,6 +5,7 @@ from YOT_Base import YOT_Base
 from YOTMLLP import *
 from YOTMCLP import *
 from YOTMCLS import *
+from YOTMONEL import *
 
 from YOTMCLS_PM import *
 
@@ -18,8 +19,9 @@ class Train(YOT_Base):
         self.path = "../rolo_data"         
         
         self.TotalLoss = []
+        self.frame_cnt = 0
         self.epochs = 10
-        self.pm_size = 16
+        self.pm_size = 0 #16
 
     def processing(self, epoch, pos, frames, fis, locs, locs_mp, labels):
         if(self.pm_size > 0):
@@ -38,23 +40,27 @@ class Train(YOT_Base):
             if(self.pm_size > 0):
                 pm = coord_utils.locations_to_probability_map(self.pm_size, l)
                 pm = pm.view(-1)
+                targets_pm.append(pm)
+
             predicts.append(p)
-            targets.append(l)
-            targets_pm.append(pm)
+            targets.append(l)            
             frms.append(f)
 
         if(self.pm_size > 0):
             loss = self.loss(torch.stack(predicts, dim=0), torch.stack(targets_pm, dim=0))            
         else:
-            #loss = self.loss(torch.stack(predicts, dim=0), torch.stack(targets, dim=0))
-            loss = self.iou_loss(frms, torch.stack(predicts, dim=0), torch.stack(targets, dim=0))
+            loss = self.loss(torch.stack(predicts, dim=0), torch.stack(targets, dim=0))
+            #loss = self.iou_loss(frms, torch.stack(predicts, dim=0), torch.stack(targets, dim=0))
         
         loss.backward()
         self.optimizer.step()
         self.optimizer.zero_grad()
+
+        self.sum_loss += loss.data
+        self.frame_cnt += len(predicts)
         
         if pos % self.log_interval == 0:
-            print('Train pos: {}-{} [Loss: {:.6f}]'.format(epoch, pos, loss.data))
+            print('Train pos: {}-{} [Loss: {:.6f}]'.format(epoch, pos, loss.data/len(predicts)))
 
             for i, (f, p, t) in enumerate(zip(frms, predicts, targets)):
                 if(self.pm_size > 0):
@@ -64,8 +70,7 @@ class Train(YOT_Base):
                 print("\t", p, t)
             iou = coord_utils.bbox_iou(torch.stack(predicts, dim=0),  torch.stack(targets, dim=0), False)            
             print("\tIOU : ", iou)
-        
-        self.sum_loss += loss.data
+                        
     
     def iou_loss(self, frms, predicts, targets):
         for f, p, t in zip(frms, predicts, targets):
@@ -81,7 +86,8 @@ class Train(YOT_Base):
         else:
             #self.model = YOTMLLP(self.batch_size, self.seq_len).to(self.device)
             #self.model = YOTMCLP(self.batch_size, self.seq_len).to(self.device)
-            self.model = YOTMCLS(self.batch_size, self.seq_len).to(self.device)
+            #self.model = YOTMCLS(self.batch_size, self.seq_len).to(self.device)
+            self.model = YOTMONEL(self.batch_size, self.seq_len).to(self.device)
 
         self.loss = nn.MSELoss(reduction='sum')
 
@@ -97,10 +103,11 @@ class Train(YOT_Base):
 
     def initialize_proc(self, epoch):
         self.sum_loss = 0
+        self.frame_cnt = 0
 
     def finalize_proc(self, epoch):
-        self.TotalLoss.append(self.sum_loss)        
-        print("Total Loss", self.TotalLoss)
+        self.TotalLoss.append(self.sum_loss/self.frame_cnt)        
+        print("Avg Loss", self.TotalLoss)
 
         self.model.save_checkpoint(self.model, self.optimizer, self.check_path)
 
