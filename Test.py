@@ -6,6 +6,7 @@ from YOTMCLS import *
 from YOTMLLP import *
 from YOTMCLP import *
 from YOTMONEL import *
+from YOTMROLO import *
 
 from YOTMCLS_PM import *
 
@@ -42,8 +43,9 @@ class Test(YOT_Base):
                 if(self.pm_size > 0):
                     o = coord_utils.probability_map_to_locations(self.pm_size, o)
                 
-                t = torch.split(y, 4, dim=0)
-                o = t[0].float()*t[1].float() + o*(1-t[1].float())
+                # Predict = Loc*conf + Output*(1-conf)
+                #t = torch.split(y, 4, dim=0)
+                #o = t[0].float()*t[1].float() + o*(1-t[1].float())
 
                 p = coord_utils.normal_to_locations(f.size(0), f.size(1), o.clamp(min=0))
                 y = coord_utils.normal_to_locations(f.size(0), f.size(1), y.clamp(min=0))
@@ -66,7 +68,8 @@ class Test(YOT_Base):
             #self.model = YOTMLLP(self.batch_size, self.seq_len).to(self.device)
             #self.model = YOTMCLP(self.batch_size, self.seq_len).to(self.device)
             #self.model = YOTMCLS(self.batch_size, self.seq_len).to(self.device)
-            self.model = YOTMONEL(self.batch_size, self.seq_len).to(self.device)       
+            #self.model = YOTMONEL(self.batch_size, self.seq_len).to(self.device)
+            self.model = YOTMROLO(self.batch_size, self.seq_len).to(self.device)
 
         self.model.load_weights(self.model, self.weights_path)
         self.model.eval()  # Set in evaluation mode

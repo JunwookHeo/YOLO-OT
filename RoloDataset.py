@@ -42,6 +42,8 @@ class RoloDataset(Dataset):
             image = torch.from_numpy(image)
             fi = image[0:128*52*52].reshape(128, 52, 52)
             loc = image[128*52*52:]
+            #fi = image[0:512*13*13].reshape(512, 13, 13)
+            #loc = image[512*13*13:]
             loc_mp = coord_utils.locations_to_probability_map(16, loc)
             #label = self.labels[pos]
             label = self.labels[pos].split('\t')   # for gt type 2

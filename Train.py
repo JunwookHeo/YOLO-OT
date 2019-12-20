@@ -6,6 +6,7 @@ from YOTMLLP import *
 from YOTMCLP import *
 from YOTMCLS import *
 from YOTMONEL import *
+from YOTMROLO import *
 
 from YOTMCLS_PM import *
 
@@ -20,7 +21,7 @@ class Train(YOT_Base):
         
         self.TotalLoss = []
         self.frame_cnt = 0
-        self.epochs = 10
+        self.epochs = 20
         self.pm_size = 0 #16
 
     def processing(self, epoch, pos, frames, fis, locs, locs_mp, labels):
@@ -87,11 +88,12 @@ class Train(YOT_Base):
             #self.model = YOTMLLP(self.batch_size, self.seq_len).to(self.device)
             #self.model = YOTMCLP(self.batch_size, self.seq_len).to(self.device)
             #self.model = YOTMCLS(self.batch_size, self.seq_len).to(self.device)
-            self.model = YOTMONEL(self.batch_size, self.seq_len).to(self.device)
+            #self.model = YOTMONEL(self.batch_size, self.seq_len).to(self.device)
+            self.model = YOTMROLO(self.batch_size, self.seq_len).to(self.device)
 
         self.loss = nn.MSELoss(reduction='sum')
 
-        self.optimizer = torch.optim.Adam(self.model.parameters(), lr=0.01)
+        self.optimizer = torch.optim.Adam(self.model.parameters(), lr=0.00001)
 
         self.model.load_checkpoint(self.model, self.optimizer, self.check_path)
 
