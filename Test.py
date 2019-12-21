@@ -67,9 +67,9 @@ class Test(YOT_Base):
         else:
             #self.model = YOTMLLP(self.batch_size, self.seq_len).to(self.device)
             #self.model = YOTMCLP(self.batch_size, self.seq_len).to(self.device)
-            #self.model = YOTMCLS(self.batch_size, self.seq_len).to(self.device)
+            self.model = YOTMCLS(self.batch_size, self.seq_len).to(self.device)
             #self.model = YOTMONEL(self.batch_size, self.seq_len).to(self.device)
-            self.model = YOTMROLO(self.batch_size, self.seq_len).to(self.device)
+            #self.model = YOTMROLO(self.batch_size, self.seq_len).to(self.device)
 
         self.model.load_weights(self.model, self.weights_path)
         self.model.eval()  # Set in evaluation mode
