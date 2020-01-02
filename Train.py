@@ -21,7 +21,7 @@ class Train(YOT_Base):
         
         self.TotalLoss = []
         self.frame_cnt = 0
-        self.epochs = 1
+        self.epochs = 10
         self.pm_size = 0 #16
 
     def processing(self, epoch, pos, frames, fis, locs, locs_mp, labels):
@@ -81,8 +81,8 @@ class Train(YOT_Base):
             self.model = YOTMCLS_PM(self.batch_size, self.seq_len).to(self.device)
         else:
             #self.model = YOTMLLP(self.batch_size, self.seq_len).to(self.device)
-            self.model = YOTMCLP(self.batch_size, self.seq_len).to(self.device)
-            #self.model = YOTMCLS(self.batch_size, self.seq_len).to(self.device)
+            #self.model = YOTMCLP(self.batch_size, self.seq_len).to(self.device)
+            self.model = YOTMCLS(self.batch_size, self.seq_len).to(self.device)
             #self.model = YOTMONEL(self.batch_size, self.seq_len).to(self.device)
             #self.model = YOTMROLO(self.batch_size, self.seq_len).to(self.device)
 
