@@ -30,7 +30,7 @@ class RoloDataset(Dataset):
         frames = []
         fis = []
         locs = []
-        locs_mp = []
+        locs_pm = []
         labels = []
         
         for i in range(self.seq_num):
@@ -44,7 +44,7 @@ class RoloDataset(Dataset):
             loc = image[128*52*52:]
             #fi = image[0:512*13*13].reshape(512, 13, 13)
             #loc = image[512*13*13:]
-            loc_mp = coord_utils.locations_to_probability_map(16, loc)
+            loc_pm = coord_utils.locations_to_probability_map(16, loc)
             #label = self.labels[pos]
             label = self.labels[pos].split('\t')   # for gt type 2
             if len(label) < 4:
@@ -55,8 +55,8 @@ class RoloDataset(Dataset):
             frames.append(frame)
             fis.append(fi)
             locs.append(loc)
-            locs_mp.append(loc_mp)
+            locs_pm.append(loc_pm)
             labels.append(label)
         
-        return torch.stack(frames, dim=0), torch.stack(fis, dim=0), torch.stack(locs, dim=0), torch.stack(locs_mp, dim=0), torch.stack(labels, dim=0)
+        return torch.stack(frames, dim=0), torch.stack(fis, dim=0), torch.stack(locs, dim=0), torch.stack(locs_pm, dim=0), torch.stack(labels, dim=0)
 

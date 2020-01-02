@@ -24,9 +24,9 @@ class Train(YOT_Base):
         self.epochs = 10
         self.pm_size = 0 #16
 
-    def processing(self, epoch, pos, frames, fis, locs, locs_mp, labels):
+    def processing(self, epoch, pos, frames, fis, locs, locs_pm, labels):
         if(self.pm_size > 0):
-            outputs = self.model(fis.float(), locs_mp.float()) 
+            outputs = self.model(fis.float(), locs_pm.float()) 
         else:
             outputs = self.model(fis.float(), locs.float())
         
