@@ -4,22 +4,22 @@ from RoloDataset import *
 
 class VideoLoader:
     @staticmethod
-    def getDataset(path, label, seq_num, img_size):
-        return VideoDataset(path, label, seq_num, img_size)
+    def getDataset(path, label, seq_num, pm_size):
+        return VideoDataset(path, label, seq_num, pm_size)
 
 class RoloLoader:
     @staticmethod
-    def getDataset(path, label, seq_num, img_size):
-        return RoloDataset(path, label, seq_num, img_size)
+    def getDataset(path, label, seq_num, pm_size):
+        return RoloDataset(path, label, seq_num, pm_size)
 
 class ListContainer:
     """ Loading folders which contain datasets """
-    def __init__(self, path, batch_size, seq_num, img_size):
+    def __init__(self, path, batch_size, seq_num, pm_size):
         self.pos = 0
         self.path = path
         self.batch_size = batch_size
         self.seq_num = seq_num
-        self.img_size = img_size
+        self.pm_size = pm_size
 
         paths = [os.path.join(path,fn) for fn in next(os.walk(path))[1]]
         paths = sorted(paths)
@@ -47,7 +47,7 @@ class ListContainer:
         else:
             label = self.labels[pos]
             
-        dataset = self.loader.getDataset(self.lists[pos], label, self.seq_num, self.img_size)
+        dataset = self.loader.getDataset(self.lists[pos], label, self.seq_num, self.pm_size)
         dataLoader = torch.utils.data.DataLoader(
             dataset,
             batch_size=self.batch_size,
@@ -72,7 +72,6 @@ class ListContainer:
                 self.labels.append(os.path.join(path,"groundtruth_rect.txt"))
                 self.lists.append(path)
 
-        
         self.loader = RoloLoader
 
 

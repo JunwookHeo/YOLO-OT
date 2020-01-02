@@ -21,8 +21,8 @@ class Train(YOT_Base):
         
         self.TotalLoss = []
         self.frame_cnt = 0
-        self.epochs = 10
-        self.pm_size = 0 #16
+        self.epochs = 6
+        self.pm_size = CLSMPMParam.LocMapSize
 
     def processing(self, epoch, pos, frames, fis, locs, locs_pm, labels):
         if(self.pm_size > 0):
@@ -57,14 +57,15 @@ class Train(YOT_Base):
         
         if pos % self.log_interval == 0:
             print('Train pos: {}-{} [Loss: {:.6f}]'.format(epoch, pos, loss.data/len(predicts)))
-
+            predict_boxes = []
+            target_boxes = []
             for i, (f, p, t) in enumerate(zip(img_frames, predicts, targets)):
                 if(self.pm_size > 0):
                     p = coord_utils.probability_map_to_locations(self.pm_size, p)
-                predicts[i] = coord_utils.normal_to_locations(f.shape[1], f.shape[2], p)
-                targets[i] = coord_utils.normal_to_locations(f.shape[1], f.shape[2], t)
+                predict_boxes.append(coord_utils.normal_to_locations(f.shape[0], f.shape[1], p))
+                target_boxes.append(coord_utils.normal_to_locations(f.shape[0], f.shape[1], t))
                 print("\t", p, t)
-            iou = coord_utils.bbox_iou(predicts,  targets, False)
+            iou = coord_utils.bbox_iou(torch.stack(predict_boxes, dim=0),  torch.stack(target_boxes, dim=0), False)
             print("\tIOU : ", iou)
                         
     
@@ -86,6 +87,7 @@ class Train(YOT_Base):
             #self.model = YOTMONEL(self.batch_size, self.seq_len).to(self.device)
             #self.model = YOTMROLO(self.batch_size, self.seq_len).to(self.device)
 
+        print(self.model)
         self.loss = nn.MSELoss(reduction='sum')
 
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=0.00001)

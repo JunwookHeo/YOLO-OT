@@ -10,7 +10,7 @@ class YOT_Base(ABC):
 
         self.batch_size = 6
         self.seq_len = 6
-        self.img_size = 416
+        #self.img_size = 416
         self.epochs = 20
         
         self.check_path = "outputs/checkpoint"
@@ -21,7 +21,7 @@ class YOT_Base(ABC):
 
         for epoch in range(self.epochs):            
             self.initialize_proc(epoch)
-            listContainer = ListContainer(self.path, self.batch_size, self.seq_len, self.img_size)
+            listContainer = ListContainer(self.path, self.batch_size, self.seq_len, self.pm_size)
             for dataLoader in listContainer:
                 pos = 0
                 for frames, fis, locs, locs_mp, labels in dataLoader:

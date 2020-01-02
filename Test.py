@@ -22,7 +22,7 @@ class Test(YOT_Base):
         self.batch_size = 1
         self.Total_Iou = 0
         self.Total_cnt = 0
-        self.pm_size = 0 #16
+        self.pm_size = CLSMPMParam.LocMapSize
 
     def processing(self, epoch, pos, frames, fis, locs, locs_mp, labels):
         with torch.no_grad():            
@@ -36,15 +36,16 @@ class Test(YOT_Base):
             yolo_predicts = self.get_last_sequence(locs)
             targets = self.get_last_sequence(labels)
 
+            predict_boxes = []
             for i, (f, o, y, l) in enumerate(zip(img_frames, predicts, yolo_predicts, targets)):
                 if(self.pm_size > 0):
                     o = coord_utils.probability_map_to_locations(self.pm_size, o)
-                predicts[i] = coord_utils.normal_to_locations(f.size(0), f.size(1), o.clamp(min=0))
+                predict_boxes.append(coord_utils.normal_to_locations(f.size(0), f.size(1), o.clamp(min=0)))
                 yolo_predicts[i] = coord_utils.normal_to_locations(f.size(0), f.size(1), y.clamp(min=0))
 
-            self.display_frame(img_frames, yolo_predicts, predicts, targets)
+            self.display_frame(img_frames, yolo_predicts, torch.stack(predict_boxes, dim=0), targets)
                 
-            iou = self.bbox_iou(predicts,  targets, False)
+            iou = self.bbox_iou(torch.stack(predict_boxes, dim=0),  targets, False)
             print(f"\t{pos} IOU : ", iou)
             self.Total_Iou += torch.sum(iou)
             self.Total_cnt += len(iou) 

@@ -6,14 +6,14 @@ from YOTM import *
 
 class CLSMPMParam:
     InfiSize = 128*52*52
-    OutfiSize = 16*16
-    OutCnnSize = 16*16 #8192
-    LocSize = OutCnnSize
-    LocMapSize = 32*32
-    InLstmSize = OutCnnSize #+ LocSize
-    HiddenSize = OutCnnSize #4096
+    OutfiSize = 16*13*13
+    OutCnnSize = OutfiSize
+    LocSize = 5
+    LocMapSize = 32
+    InLstmSize = OutCnnSize + LocMapSize*LocMapSize
+    HiddenSize = 2048 
     LayerSize = 1
-    OutputSize = OutCnnSize
+    OutputSize = LocMapSize*LocMapSize
 
 
 class YimgNet_PM(nn.Module):
@@ -21,23 +21,18 @@ class YimgNet_PM(nn.Module):
         super(YimgNet_PM, self).__init__()
         self.conv1 = nn.Conv2d(128, 64, kernel_size=3, stride=2, padding=1)
         self.conv2 = nn.Conv2d(64, 32, kernel_size=3, stride=2, padding=1)
-        self.conv3 = nn.Conv2d(32, 16, kernel_size=3, stride=2, padding=1)
-        self.conv4 = nn.Conv2d(16, 16, kernel_size=3, stride=2, padding=1)
-        self.fc = nn.Linear(CLSMPMParam.OutfiSize, CLSMPMParam.OutCnnSize)
+        self.conv3 = nn.Conv2d(32, 16, kernel_size=1)
 
     def forward(self, x, l):
         batch_size, seq_size, C, H, W = x.size()
-        c_in = x.view(batch_size*seq_size, C, H, W)
-        c_in = F.relu(self.conv1(c_in))
-        c_in = F.relu(self.conv2(c_in))
-        c_in = F.relu(self.conv3(c_in))
-        c_in = F.relu(self.conv4(c_in))
-        c_in = c_in.view(batch_size*seq_size, -1)
-        c_in = F.relu(self.fc(c_in))
-        c_out = c_in.view(batch_size, seq_size, -1)
-        #c_out = torch.cat((c_out,l), 2)
-        l_out = l.view(batch_size, seq_size, -1)
-        c_out = c_out + l_out
+        x = x.view(batch_size*seq_size, C, H, W)
+        x = F.relu(self.conv1(x))
+        x = F.relu(self.conv2(x))
+        x = F.relu(self.conv3(x))
+
+        x = x.view(batch_size, seq_size, -1)
+        l = l.view(batch_size, seq_size, -1)
+        c_out = torch.cat((x, l), 2)
         return c_out
 
 class LstmNet_PM(nn.Module):
@@ -57,7 +52,6 @@ class LstmNet_PM(nn.Module):
                 Variable(torch.zeros(CLSMPMParam.LayerSize, self.batch_size, CLSMPMParam.HiddenSize)))
 
     def forward(self, x):
-        x = x.view(x.size(0), self.seq_len, -1)
         c_out, _ = self.lstm(x, self.hidden)
         c_out = self.fc(c_out)
         return c_out
@@ -71,7 +65,6 @@ class YOTMCLS_PM(YOTM):
     def forward(self, x, l):
         out = self.yimgnet(x, l)
         out = self.lstmnet(out)
-        out = out.view(out.size(0), out.size(1), -1)
 
         return out
         

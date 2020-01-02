@@ -64,7 +64,6 @@ class YOTMCLS(YOTM):
     def forward(self, x, l):
         out = self.yimgnet(x, l)
         out = self.lstmnet(out)
-        #out = out.view(out.size(0), out.size(1), -1)
 
         return out
         
