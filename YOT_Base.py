@@ -57,6 +57,10 @@ class YOT_Base(ABC):
     def finalize_proc(self, epoch):
         pass
     
+    def get_last_sequence(self, data):
+        d = torch.split(data, self.seq_len -1, dim=1)
+        return torch.squeeze(d[1], dim=1)
+
     def normal_to_locations(self, wid, ht, locations):
         #print("location in func: ", locations)
         wid *= 1.0

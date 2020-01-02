@@ -21,7 +21,7 @@ class Train(YOT_Base):
         
         self.TotalLoss = []
         self.frame_cnt = 0
-        self.epochs = 20
+        self.epochs = 1
         self.pm_size = 0 #16
 
     def processing(self, epoch, pos, frames, fis, locs, locs_mp, labels):
@@ -29,29 +29,24 @@ class Train(YOT_Base):
             outputs = self.model(fis.float(), locs_mp.float()) 
         else:
             outputs = self.model(fis.float(), locs.float())
+        
+        img_frames = self.get_last_sequence(frames)
+        predicts = self.get_last_sequence(outputs)                
+        targets = self.get_last_sequence(labels)
 
-        predicts = []
-        targets = []
         targets_pm = []
-        frms = []
-        for i, (f, output, label) in enumerate(zip(frames, outputs, labels)):
-            p = output[-1]
-            l = label[-1]
-            l = coord_utils.locations_to_normal(f.shape[1], f.shape[2], l)
+        for i, (f, l) in enumerate(zip(img_frames, targets)):
+            targets[i] = coord_utils.locations_to_normal(f.shape[0], f.shape[1], l)
             if(self.pm_size > 0):
                 pm = coord_utils.locations_to_probability_map(self.pm_size, l)
                 pm = pm.view(-1)
                 targets_pm.append(pm)
-
-            predicts.append(p)
-            targets.append(l)            
-            frms.append(f)
-
+        
         if(self.pm_size > 0):
-            loss = self.loss(torch.stack(predicts, dim=0), torch.stack(targets_pm, dim=0))            
+            loss = self.loss(predicts, torch.stack(targets_pm, dim=0))            
         else:
-            loss = self.loss(torch.stack(predicts, dim=0), torch.stack(targets, dim=0))
-            #loss = self.iou_loss(frms, torch.stack(predicts, dim=0), torch.stack(targets, dim=0))
+            loss = self.loss(predicts, targets)
+            #loss = self.iou_loss(img_frames, predicts, targets)
         
         loss.backward()
         self.optimizer.step()
@@ -63,13 +58,13 @@ class Train(YOT_Base):
         if pos % self.log_interval == 0:
             print('Train pos: {}-{} [Loss: {:.6f}]'.format(epoch, pos, loss.data/len(predicts)))
 
-            for i, (f, p, t) in enumerate(zip(frms, predicts, targets)):
+            for i, (f, p, t) in enumerate(zip(img_frames, predicts, targets)):
                 if(self.pm_size > 0):
                     p = coord_utils.probability_map_to_locations(self.pm_size, p)
                 predicts[i] = coord_utils.normal_to_locations(f.shape[1], f.shape[2], p)
                 targets[i] = coord_utils.normal_to_locations(f.shape[1], f.shape[2], t)
                 print("\t", p, t)
-            iou = coord_utils.bbox_iou(torch.stack(predicts, dim=0),  torch.stack(targets, dim=0), False)            
+            iou = coord_utils.bbox_iou(predicts,  targets, False)
             print("\tIOU : ", iou)
                         
     
@@ -86,10 +81,10 @@ class Train(YOT_Base):
             self.model = YOTMCLS_PM(self.batch_size, self.seq_len).to(self.device)
         else:
             #self.model = YOTMLLP(self.batch_size, self.seq_len).to(self.device)
-            #self.model = YOTMCLP(self.batch_size, self.seq_len).to(self.device)
+            self.model = YOTMCLP(self.batch_size, self.seq_len).to(self.device)
             #self.model = YOTMCLS(self.batch_size, self.seq_len).to(self.device)
             #self.model = YOTMONEL(self.batch_size, self.seq_len).to(self.device)
-            self.model = YOTMROLO(self.batch_size, self.seq_len).to(self.device)
+            #self.model = YOTMROLO(self.batch_size, self.seq_len).to(self.device)
 
         self.loss = nn.MSELoss(reduction='sum')
 
