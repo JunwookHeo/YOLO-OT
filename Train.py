@@ -106,9 +106,9 @@ class Train(YOT_Base):
         if(self.pm_size > 0):         
             self.model = YOTMCLS_PM(self.batch_size, self.seq_len).to(self.device)
         else:
-            #self.model = YOTMLLP(self.batch_size, self.seq_len).to(self.device)
+            self.model = YOTMLLP(self.batch_size, self.seq_len).to(self.device)
             #self.model = YOTMCLP(self.batch_size, self.seq_len).to(self.device)
-            self.model = YOTMCLS(self.batch_size, self.seq_len).to(self.device)
+            #self.model = YOTMCLS(self.batch_size, self.seq_len).to(self.device)
             #self.model = YOTMONEL(self.batch_size, self.seq_len).to(self.device)
             #self.model = YOTMROLO(self.batch_size, self.seq_len).to(self.device)
 

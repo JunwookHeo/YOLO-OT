@@ -6,57 +6,81 @@ from YOTM import *
 
 class LLPMParam:
     InfiSize = 128*52*52
-    OutfiSize = 64*26*26
-    OutCnnSize = 5 #8192
+    OutfiSize = 16*13*13
+    OutCnnSize = OutfiSize
     LocSize = 5
     LocMapSize = 32*32
-    InLstmSize = OutCnnSize + LocSize
-    HiddenSize = 8 #4096
+    InLstmSize = OutCnnSize
+    HiddenSize = 512 #4096
     LayerSize = 1
     OutputSize = 4
+
+class YimgNet(nn.Module):
+    def __init__(self, batch_size, seq_len):
+        super(YimgNet, self).__init__()
+        self.batch_size = batch_size
+        self.seq_len = seq_len
+        self.conv1 = nn.Conv2d(128, 64, kernel_size=3, stride=2, padding=1)
+        self.conv2 = nn.Conv2d(64, 32, kernel_size=3, stride=2, padding=1)
+        self.conv3 = nn.Conv2d(32, 16, kernel_size=1)
+
+        self.lstm = nn.LSTM(input_size=LLPMParam.OutCnnSize, hidden_size=LLPMParam.HiddenSize, 
+                            num_layers=LLPMParam.LayerSize, batch_first=True)
+        self.hidden = self.init_hidden()
+
+    def init_hidden(self):
+            return (Variable(torch.zeros(LLPMParam.LayerSize, self.batch_size, LLPMParam.HiddenSize)), 
+                Variable(torch.zeros(LLPMParam.LayerSize, self.batch_size, LLPMParam.HiddenSize)))
+
+    def forward(self, x):
+        batch_size, seq_size, C, H, W = x.size()
+        x = x.view(batch_size*seq_size, C, H, W)
+        x = F.relu(self.conv1(x))
+        x = F.relu(self.conv2(x))
+        x = F.relu(self.conv3(x))
+
+        x = x.view(batch_size, seq_size, -1)
+        c_out, _ = self.lstm(x, self.hidden)
+        
+        return c_out
+
 
 class LLNet(nn.Module):
     def __init__(self, batch_size, seq_len):
         super(LLNet, self).__init__()
         self.batch_size = batch_size
         self.seq_len = seq_len
-
-        self.lstm1 = nn.LSTM(input_size=LLPMParam.InfiSize, hidden_size=LLPMParam.HiddenSize, 
+        
+        self.lstm = nn.LSTM(input_size=LLPMParam.LocSize, hidden_size=LLPMParam.HiddenSize, 
                             num_layers=LLPMParam.LayerSize, batch_first=True)
-        self.hidden1 = self.init_hidden()
-
-        self.lstm2 = nn.LSTM(input_size=LLPMParam.LocSize, hidden_size=LLPMParam.HiddenSize, 
-                            num_layers=LLPMParam.LayerSize, batch_first=True)
-        self.hidden2 = self.init_hidden()
-
-        self.fc = nn.Linear(LLPMParam.HiddenSize, LLPMParam.OutputSize)
+        self.hidden = self.init_hidden()
         
     def init_hidden(self):
             return (Variable(torch.zeros(LLPMParam.LayerSize, self.batch_size, LLPMParam.HiddenSize)), 
                 Variable(torch.zeros(LLPMParam.LayerSize, self.batch_size, LLPMParam.HiddenSize)))
 
-    def forward(self, x, l):
-        batch_size, seq_size, N, W, H = x.size()
-        x = x.view(batch_size, seq_size, -1)
-        c_x, _ = self.lstm1(x, self.hidden1)
+    def forward(self, l):
+        #batch_size, seq_size, N, W, H = x.size()
+        #x = x.view(batch_size, seq_size, -1)
         
-        c_l, _ = self.lstm2(l, self.hidden2)
-        c_out = c_x + c_l
+        c_out, _ = self.lstm(l, self.hidden)
         
-        c_out = self.fc(c_out)
         return c_out
 
 
 class YOTMLLP(YOTM):
     def __init__(self, batch_size, seq_len):
         super(YOTMLLP, self).__init__()
+        self.yimgnet = YimgNet(batch_size, seq_len)
         self.llnet = LLNet(batch_size, seq_len)
+        self.fc = nn.Linear(LLPMParam.HiddenSize, LLPMParam.OutputSize)
      
     def forward(self, x, l):
-        out = self.llnet(x, l)
-        out = out.view(out.size(0), out.size(1), -1)
-
-        return out
+        c_x = self.yimgnet(x)
+        c_l = self.llnet(l)
+        c_out = c_x + c_l
+        c_out = self.fc(c_out)
+        return c_out
         
     def save_checkpoint(self, model, optimizer, path):
         super().save_checkpoint(model, optimizer, path, 'yotmllp.pth')

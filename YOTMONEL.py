@@ -7,7 +7,7 @@ from YOTM import *
 class ONELMParam:
     LocSize = 5
     LocMapSize = 32*32
-    HiddenSize = 4 #4096
+    HiddenSize = 512 #4096
     LayerSize = 1
     OutputSize = 4
 
