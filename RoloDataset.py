@@ -9,12 +9,13 @@ from coord_utils import *
 
 class RoloDataset(Dataset):
     """ Loading frames in a video file """
-    def __init__(self, path, label, seq_num, pm_size):
+    def __init__(self, path, label, seq_num, pm_size, mode):
         self.path = path
         self.label = label
         self.seq_num = seq_num
         self.pm_size = pm_size
-        
+        self.mode = mode
+                
         self.frames = sorted(glob.glob("%s/*.*" % os.path.join(path, 'images'))) 
         self.images= sorted(glob.glob("%s/*.*" % os.path.join(path, 'yot_out')))
         
@@ -22,7 +23,14 @@ class RoloDataset(Dataset):
             self.labels = file.readlines()
 
         self.num_frames = len(self.images)
+        self.start_pos = 0
 
+        if self.mode is 'train':    
+            self.num_frames = int(self.num_frames*0.7)
+        elif self.mode is 'test':
+            self.start_pos = int(self.num_frames*0.7)
+            self.num_frames = self.num_frames - self.start_pos
+        
     def __len__(self):
         return self.num_frames - (self.seq_num - 1) 
 
@@ -34,7 +42,7 @@ class RoloDataset(Dataset):
         labels = []
         
         for i in range(self.seq_num):
-            pos = idx + i
+            pos = idx + i + self.start_pos
             frame = np.array(Image.open(self.frames[pos]))
             frame = torch.from_numpy(frame)
 

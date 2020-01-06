@@ -4,22 +4,23 @@ from RoloDataset import *
 
 class VideoLoader:
     @staticmethod
-    def getDataset(path, label, seq_num, pm_size):
-        return VideoDataset(path, label, seq_num, pm_size)
+    def getDataset(path, label, seq_num, pm_size, mode):
+        return VideoDataset(path, label, seq_num, pm_size, mode)
 
 class RoloLoader:
     @staticmethod
-    def getDataset(path, label, seq_num, pm_size):
-        return RoloDataset(path, label, seq_num, pm_size)
+    def getDataset(path, label, seq_num, pm_size, mode):
+        return RoloDataset(path, label, seq_num, pm_size, mode)
 
 class ListContainer:
     """ Loading folders which contain datasets """
-    def __init__(self, path, batch_size, seq_num, pm_size):
+    def __init__(self, path, batch_size, seq_num, pm_size, mode):
         self.pos = 0
         self.path = path
         self.batch_size = batch_size
         self.seq_num = seq_num
         self.pm_size = pm_size
+        self.mode = mode
 
         paths = [os.path.join(path,fn) for fn in next(os.walk(path))[1]]
         paths = sorted(paths)
@@ -47,7 +48,7 @@ class ListContainer:
         else:
             label = self.labels[pos]
             
-        dataset = self.loader.getDataset(self.lists[pos], label, self.seq_num, self.pm_size)
+        dataset = self.loader.getDataset(self.lists[pos], label, self.seq_num, self.pm_size, self.mode)
         dataLoader = torch.utils.data.DataLoader(
             dataset,
             batch_size=self.batch_size,

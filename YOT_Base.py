@@ -21,7 +21,7 @@ class YOT_Base(ABC):
 
         for epoch in range(self.epochs):            
             self.initialize_proc(epoch)
-            listContainer = ListContainer(self.path, self.batch_size, self.seq_len, self.pm_size)
+            listContainer = ListContainer(self.path, self.batch_size, self.seq_len, self.pm_size, 'none')
             for dataLoader in listContainer:
                 pos = 0
                 for frames, fis, locs, locs_mp, labels in dataLoader:

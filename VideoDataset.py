@@ -7,7 +7,7 @@ import torchvision.transforms as transforms
 
 class VideoDataset(Dataset):
     """ Loading frames in a video file """
-    def __init__(self, path, label, seq_num, img_size):
+    def __init__(self, path, label, seq_num, img_size, mode):
         self.path = path
         self.label = label
         self.seq_num = seq_num

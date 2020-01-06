@@ -2,6 +2,8 @@ import torch
 import cv2
 
 from YOT_Base import YOT_Base
+from ListContainer import *
+
 from YOTMCLS import *
 from YOTMLLP import *
 from YOTMCLP import *
@@ -22,7 +24,28 @@ class Test(YOT_Base):
         self.batch_size = 1
         self.Total_Iou = 0
         self.Total_cnt = 0
-        self.pm_size = CLSMPMParam.LocMapSize
+        self.pm_size = 0 #CLSMPMParam.LocMapSize
+
+    def proc(self):
+        self.pre_proc()
+
+        for epoch in range(self.epochs):            
+            self.initialize_proc(epoch)
+            listContainer = ListContainer(self.path, self.batch_size, self.seq_len, self.pm_size, 'test')
+            for dataLoader in listContainer:
+                pos = 0
+                for frames, fis, locs, locs_mp, labels in dataLoader:
+                    fis = Variable(fis.to(self.device))
+                    locs = Variable(locs.to(self.device))
+                    locs_mp = Variable(locs_mp.to(self.device)) 
+                    labels = Variable(labels.to(self.device), requires_grad=False)
+
+                    self.processing(epoch, pos, frames, fis, locs, locs_mp, labels)
+                    pos += 1
+
+            self.finalize_proc(epoch)
+        
+        self.post_proc()
 
     def processing(self, epoch, pos, frames, fis, locs, locs_mp, labels):
         with torch.no_grad():            
@@ -46,7 +69,8 @@ class Test(YOT_Base):
             self.display_frame(img_frames, yolo_predicts, torch.stack(predict_boxes, dim=0), targets)
                 
             iou = self.bbox_iou(torch.stack(predict_boxes, dim=0),  targets, False)
-            print(f"\t{pos} IOU : ", iou)
+            yiou = self.bbox_iou(yolo_predicts.float(),  targets, False)
+            print(f"\t{pos} IOU : {iou} - {yiou}")
             self.Total_Iou += torch.sum(iou)
             self.Total_cnt += len(iou) 
 
