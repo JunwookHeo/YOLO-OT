@@ -4,18 +4,6 @@ from torch.autograd import Variable
 import torch.nn.functional as F
 from YOTM import *
 
-class CLSMParam:
-    InfiSize = 128*52*52
-    OutfiSize = 16*13*13
-    OutCnnSize = OutfiSize
-    LocSize = 5
-    LocMapSize = 32*32
-    InLstmSize = OutCnnSize + LocSize
-    HiddenSize = 2048
-    LayerSize = 1
-    OutputSize = 4
-
-
 class YimgNet(nn.Module):
     def __init__(self):
         super(YimgNet, self).__init__()
@@ -35,20 +23,21 @@ class YimgNet(nn.Module):
         return c_out
 
 class LstmNet(nn.Module):
-    def __init__(self, batch_size, seq_len):
+    def __init__(self, batch_size, seq_len, np):
         super(LstmNet, self).__init__()
         self.batch_size = batch_size
         self.seq_len = seq_len
+        self.np = np
 
-        self.lstm = nn.LSTM(input_size=CLSMParam.InLstmSize, hidden_size=CLSMParam.HiddenSize, 
-                            num_layers=CLSMParam.LayerSize, batch_first=True)
+        self.lstm = nn.LSTM(input_size=self.np.InLstmSize, hidden_size=self.np.HiddenSize, 
+                            num_layers=self.np.LayerSize, batch_first=True)
 
-        self.fc = nn.Linear(CLSMParam.HiddenSize, CLSMParam.OutputSize)
+        self.fc = nn.Linear(self.np.HiddenSize, self.np.OutputSize)
         self.hidden = self.init_hidden()
 
     def init_hidden(self):
-            return (Variable(torch.zeros(CLSMParam.LayerSize, self.batch_size, CLSMParam.HiddenSize)), 
-                Variable(torch.zeros(CLSMParam.LayerSize, self.batch_size, CLSMParam.HiddenSize)))
+            return (Variable(torch.zeros(self.np.LayerSize, self.batch_size, self.np.HiddenSize)), 
+                Variable(torch.zeros(self.np.LayerSize, self.batch_size, self.np.HiddenSize)))
 
     def forward(self, x):
         c_out, _ = self.lstm(x, self.hidden)
@@ -56,10 +45,23 @@ class LstmNet(nn.Module):
         return c_out
 
 class YOTMCLS(YOTM):
+    class NP:
+        InfiSize = 128*52*52
+        OutfiSize = 16*13*13
+        OutCnnSize = OutfiSize
+        LocSize = 5
+        LocMapSize = 32*32
+        InLstmSize = OutCnnSize + LocSize
+        HiddenSize = 2048
+        LayerSize = 1
+        OutputSize = 4
+        
     def __init__(self, batch_size, seq_len):
         super(YOTMCLS, self).__init__()
+        self.np = self.NP()
+
         self.yimgnet = YimgNet()
-        self.lstmnet = LstmNet(batch_size, seq_len)
+        self.lstmnet = LstmNet(batch_size, seq_len, self.np)
         
     def forward(self, x, l):
         out = self.yimgnet(x, l)

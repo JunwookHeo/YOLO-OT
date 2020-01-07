@@ -4,28 +4,22 @@ from torch.autograd import Variable
 import torch.nn.functional as F
 from YOTM import *
 
-class ONELMParam:
-    LocSize = 5
-    LocMapSize = 32*32
-    HiddenSize = 512 #4096
-    LayerSize = 1
-    OutputSize = 4
-
 class OneLNet(nn.Module):
-    def __init__(self, batch_size, seq_len):
+    def __init__(self, batch_size, seq_len, np):
         super(OneLNet, self).__init__()
         self.batch_size = batch_size
         self.seq_len = seq_len
+        self.np = np
 
-        self.lstm = nn.LSTM(input_size=ONELMParam.LocSize, hidden_size=ONELMParam.HiddenSize, 
-                            num_layers=ONELMParam.LayerSize, batch_first=True)
+        self.lstm = nn.LSTM(input_size=self.np.LocSize, hidden_size=self.np.HiddenSize, 
+                            num_layers=self.np.LayerSize, batch_first=True)
         self.hidden = self.init_hidden()
 
-        self.fc = nn.Linear(ONELMParam.HiddenSize, ONELMParam.OutputSize)
+        self.fc = nn.Linear(self.np.HiddenSize, self.np.OutputSize)
         
     def init_hidden(self):
-            return (Variable(torch.zeros(ONELMParam.LayerSize, self.batch_size, ONELMParam.HiddenSize)), 
-                Variable(torch.zeros(ONELMParam.LayerSize, self.batch_size, ONELMParam.HiddenSize)))
+            return (Variable(torch.zeros(self.np.LayerSize, self.batch_size, self.np.HiddenSize)), 
+                Variable(torch.zeros(self.np.LayerSize, self.batch_size, self.np.HiddenSize)))
 
     def forward(self, x, l):
         batch_size, seq_size, N = l.size()
@@ -37,9 +31,18 @@ class OneLNet(nn.Module):
 
 
 class YOTMONEL(YOTM):
+    class NP:
+        LocSize = 5
+        LocMapSize = 32*32
+        HiddenSize = 512 #4096
+        LayerSize = 1
+        OutputSize = 4
+        
     def __init__(self, batch_size, seq_len):
         super(YOTMONEL, self).__init__()
-        self.lstmlnet = OneLNet(batch_size, seq_len)
+        self.np = self.NP()
+
+        self.lstmlnet = OneLNet(batch_size, seq_len, self.np)
      
     def forward(self, x, l):
         batch_size, seq_size, _ = l.size()        

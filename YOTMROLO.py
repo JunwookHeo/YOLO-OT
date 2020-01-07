@@ -4,35 +4,25 @@ from torch.autograd import Variable
 import torch.nn.functional as F
 from YOTM import *
 
-class ROLOMParam:
-    InfiSize = 128*52*52
-    OutfiSize = 4*4
-    OutCnnSize = 1*52*52
-    LocSize = 5
-    LocMapSize = 32*32
-    InLstmSize = OutCnnSize + LocSize
-    HiddenSize = 16
-    LayerSize = 1
-    OutputSize = 4
-
 class RoloNet(nn.Module):
-    def __init__(self, batch_size, seq_len):
+    def __init__(self, batch_size, seq_len, np):
         super(RoloNet, self).__init__()
         self.batch_size = batch_size
         self.seq_len = seq_len
+        self.np = np
 
-        self.lstm = nn.LSTM(input_size=ROLOMParam.InLstmSize, hidden_size=ROLOMParam.HiddenSize, 
-                            num_layers=ROLOMParam.LayerSize, batch_first=True)
+        self.lstm = nn.LSTM(input_size=self.np.InLstmSize, hidden_size=self.np.HiddenSize, 
+                            num_layers=self.np.LayerSize, batch_first=True)
 
-        self.fc = nn.Linear(ROLOMParam.HiddenSize, ROLOMParam.OutputSize)
+        self.fc = nn.Linear(self.np.HiddenSize, self.np.OutputSize)
         
         self.conv = nn.Conv2d(128, 1, kernel_size=1)
 
         self.hidden = self.init_hidden()
 
     def init_hidden(self):
-            return (Variable(torch.zeros(ROLOMParam.LayerSize, self.batch_size, ROLOMParam.HiddenSize)), 
-                Variable(torch.zeros(ROLOMParam.LayerSize, self.batch_size, ROLOMParam.HiddenSize)))
+            return (Variable(torch.zeros(self.np.LayerSize, self.batch_size, self.np.HiddenSize)), 
+                Variable(torch.zeros(self.np.LayerSize, self.batch_size, self.np.HiddenSize)))
 
     def forward(self, x, l):
         batch_size, seq_size, C, W, H= x.size()
@@ -51,9 +41,21 @@ class RoloNet(nn.Module):
         return c_out
 
 class YOTMROLO(YOTM):
+    class NP:
+        InfiSize = 128*52*52
+        OutfiSize = 4*4
+        OutCnnSize = 1*52*52
+        LocSize = 5
+        LocMapSize = 32*32
+        InLstmSize = OutCnnSize + LocSize
+        HiddenSize = 16
+        LayerSize = 1
+        OutputSize = 4
+        
     def __init__(self, batch_size, seq_len):
         super(YOTMROLO, self).__init__()
-        self.rolonet = RoloNet(batch_size, seq_len)
+        self.np = self.NP()
+        self.rolonet = RoloNet(batch_size, seq_len, self.np)
 
     def forward(self, x, l):
         out = self.rolonet(x, l)
