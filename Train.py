@@ -1,6 +1,8 @@
 import torch
 import torch.nn.functional as F
 
+import pandas as pd
+
 from YOT_Base import YOT_Base
 from ListContainer import *
 
@@ -22,11 +24,10 @@ class Train(YOT_Base):
         # The path of dataset
         self.path = "../rolo_data"         
         
-        self.TotalLoss = []
-        self.TotalIou = []
-        self.EvalIou = []
+        self.Report = pd.DataFrame(columns=['Loss', 'Train IoU', 'Validate IoU'])
+
         self.frame_cnt = 0
-        self.epochs = 5
+        self.epochs = 1
 
         self.mode = 'train'
 
@@ -101,15 +102,15 @@ class Train(YOT_Base):
         self.frame_cnt = 0
 
     def finalize_proc(self, epoch):
-        self.TotalLoss.append(self.sum_loss/self.frame_cnt)
-        self.TotalIou.append(self.sum_iou/self.frame_cnt)
-        eval_iou = self.evaluation()
-        self.EvalIou.append(eval_iou)
+        avg_loss = self.sum_loss/self.frame_cnt
+        train_iou = self.sum_iou/self.frame_cnt        
+        validate_iou = self.evaluation()        
         self.model.train()
         
-        print(f"Avg Loss : {self.TotalLoss}, Avg IoU : {self.TotalIou}, Eval IoU : {self.EvalIou}")
-
         self.model.save_checkpoint(self.model, self.optimizer, self.check_path)
+
+        self.Report = self.Report.append({'Loss':avg_loss, 'Train IoU':train_iou, 'Validate IoU':validate_iou}, ignore_index=True)
+        print(self.Report)
 
     def evaluation(self):
         total_iou = 0

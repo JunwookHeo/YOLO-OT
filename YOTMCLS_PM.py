@@ -8,7 +8,7 @@ from coord_utils import *
 from YOTM import *
 
 class YimgNet_PM(nn.Module):
-    def __init__(self, np`):
+    def __init__(self, np):
         super(YimgNet_PM, self).__init__()
         self.np = np
         
@@ -33,7 +33,7 @@ class YimgNet_PM(nn.Module):
         return c_out
 
 class LstmNet_PM(nn.Module):
-    def __init__(self, batch_size, seq_len, np`):
+    def __init__(self, batch_size, seq_len, np):
         super(LstmNet_PM, self).__init__()
         self.batch_size = batch_size
         self.seq_len = seq_len

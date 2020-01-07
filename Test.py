@@ -52,11 +52,11 @@ class Test(YOT_Base):
 
     def pre_proc(self):
         ### Models Using Probability Map
-        self.model = YOTMLLP_PM(self.batch_size, self.seq_len).to(self.device)
+        #self.model = YOTMLLP_PM(self.batch_size, self.seq_len).to(self.device)
         #self.model = YOTMCLS_PM(self.batch_size, self.seq_len).to(self.device)
         
         ### Models Without Probability Map
-        #self.model = YOTMLLP(self.batch_size, self.seq_len).to(self.device)
+        self.model = YOTMLLP(self.batch_size, self.seq_len).to(self.device)
         #self.model = YOTMCLP(self.batch_size, self.seq_len).to(self.device)
         #self.model = YOTMCLS(self.batch_size, self.seq_len).to(self.device)
         #self.model = YOTMONEL(self.batch_size, self.seq_len).to(self.device)
