@@ -47,19 +47,19 @@ class Test(YOT_Base):
             iou = coord_utils.bbox_iou(torch.stack(predict_boxes, dim=0),  targets, False)
             yiou = coord_utils.bbox_iou(yolo_predicts.float(),  targets, False)
             print(f"\t{pos} IOU : {iou} - {yiou}")
-            self.Total_Iou += torch.sum(iou)
+            self.Total_Iou += float(torch.sum(iou))
             self.Total_cnt += len(iou) 
 
     def pre_proc(self):
         ### Models Using Probability Map
         #self.model = YOTMLLP_PM(self.batch_size, self.seq_len).to(self.device)
-        self.model = YOTMCLS_PM(self.batch_size, self.seq_len).to(self.device)
+        #self.model = YOTMCLS_PM(self.batch_size, self.seq_len).to(self.device)
         
         ### Models Without Probability Map
         #self.model = YOTMLLP(self.batch_size, self.seq_len).to(self.device)
         #self.model = YOTMCLP(self.batch_size, self.seq_len).to(self.device)
         #self.model = YOTMCLS(self.batch_size, self.seq_len).to(self.device)
-        #self.model = YOTMONEL(self.batch_size, self.seq_len).to(self.device)
+        self.model = YOTMONEL(self.batch_size, self.seq_len).to(self.device)
         #self.model = YOTMROLO(self.batch_size, self.seq_len).to(self.device)
 
         self.model.load_weights(self.model, self.weights_path)

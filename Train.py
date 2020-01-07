@@ -24,31 +24,12 @@ class Train(YOT_Base):
         
         self.TotalLoss = []
         self.TotalIou = []
+        self.EvalIou = []
         self.frame_cnt = 0
-        self.epochs = 1
+        self.epochs = 5
 
         self.mode = 'train'
-    '''
-    def proc(self):
-        self.pre_proc()
 
-        for epoch in range(self.epochs):            
-            self.initialize_proc(epoch)
-            listContainer = ListContainer(self.path, self.batch_size, self.seq_len, self.img_size, 'train')
-            for dataLoader in listContainer:
-                pos = 0
-                for frames, fis, locs, labels in dataLoader:
-                    fis = Variable(fis.to(self.device))
-                    locs = Variable(locs.to(self.device))
-                    labels = Variable(labels.to(self.device), requires_grad=False)
-
-                    self.processing(epoch, pos, frames, fis, locs, labels)
-                    pos += 1
-
-            self.finalize_proc(epoch)
-        
-        self.post_proc()
-    '''
 
     def processing(self, epoch, pos, frames, fis, locs, labels):
         outputs = self.model(fis.float(), locs.float())
@@ -95,13 +76,13 @@ class Train(YOT_Base):
     def pre_proc(self):
         ### Models Using Probability Map
         #self.model = YOTMLLP_PM(self.batch_size, self.seq_len).to(self.device)
-        self.model = YOTMCLS_PM(self.batch_size, self.seq_len).to(self.device)
+        #self.model = YOTMCLS_PM(self.batch_size, self.seq_len).to(self.device)
         
         ### Models Without Probability Map
         #self.model = YOTMLLP(self.batch_size, self.seq_len).to(self.device)
         #self.model = YOTMCLP(self.batch_size, self.seq_len).to(self.device)
         #self.model = YOTMCLS(self.batch_size, self.seq_len).to(self.device)
-        #self.model = YOTMONEL(self.batch_size, self.seq_len).to(self.device)
+        self.model = YOTMONEL(self.batch_size, self.seq_len).to(self.device)
         #self.model = YOTMROLO(self.batch_size, self.seq_len).to(self.device)
 
         print(self.model)
@@ -122,10 +103,48 @@ class Train(YOT_Base):
     def finalize_proc(self, epoch):
         self.TotalLoss.append(self.sum_loss/self.frame_cnt)
         self.TotalIou.append(self.sum_iou/self.frame_cnt)
+        eval_iou = self.evaluation()
+        self.EvalIou.append(eval_iou)
+        self.model.train()
         
-        print(f"Avg Loss : {self.TotalLoss}, Avg IoU : {self.TotalIou}")
+        print(f"Avg Loss : {self.TotalLoss}, Avg IoU : {self.TotalIou}, Eval IoU : {self.EvalIou}")
 
         self.model.save_checkpoint(self.model, self.optimizer, self.check_path)
+
+    def evaluation(self):
+        total_iou = 0
+        total_cnt = 0
+        self.model.train(False)
+
+        eval_list = ListContainer(self.path, self.batch_size, self.seq_len, self.img_size, 'test')
+        for dataLoader in eval_list:
+            for frames, fis, locs, labels in dataLoader:
+                fis = Variable(fis.to(self.device))
+                locs = Variable(locs.to(self.device))
+                labels = Variable(labels.to(self.device), requires_grad=False)
+
+                with torch.no_grad():            
+                    outputs = self.model(fis.float(), locs.float())
+        
+                    img_frames = self.get_last_sequence(frames)
+                    predicts = self.get_last_sequence(outputs)                
+                    yolo_predicts = self.get_last_sequence(locs)
+                    targets = self.get_last_sequence(labels)
+
+                    predict_boxes = []
+                    for i, (f, o, y, l) in enumerate(zip(img_frames, predicts, yolo_predicts, targets)):
+                        o = self.model.get_location(o)
+                        predict_boxes.append(coord_utils.normal_to_location(f.size(0), f.size(1), o.clamp(min=0)))
+                        yolo_predicts[i] = coord_utils.normal_to_location(f.size(0), f.size(1), y.clamp(min=0))
+                        
+                    iou = coord_utils.bbox_iou(torch.stack(predict_boxes, dim=0),  targets, False)
+                    yiou = coord_utils.bbox_iou(yolo_predicts.float(),  targets, False)
+                    #print(f"\tIOU : {iou} - {yiou}")
+                    total_iou += float(torch.sum(iou))
+                    total_cnt += len(iou)
+        
+        return float(total_iou/total_cnt)
+
 
 def main(argvs):
     train = Train(argvs)
