@@ -3,8 +3,8 @@ import torch
 
 class coord_utils:
     @staticmethod
-    def locations_to_probability_map(size, loc):
-        # loc is not normalized locations
+    def location_to_probability_map(size, loc):
+        # loc is not normalized location
         promap_vec = torch.zeros([size, size], dtype=torch.float32)
         try:
             conf = loc[4]
@@ -12,6 +12,9 @@ class coord_utils:
             conf = 1.0
 
         [x1, y1, x2, y2] = [(loc[0]*size).int(), (loc[1]*size).int(), ((loc[0]+loc[2])*size).int(), ((loc[1]+loc[3])*size).int()]
+        if x1 == x2: x2 += 1
+        if y1 == y2: y2 += 1
+        
         x1 = x1.clamp(0, size)
         y1 = y1.clamp(0, size)
         x2 = x2.clamp(0, size)
@@ -23,8 +26,17 @@ class coord_utils:
         return promap_vec
 
     @staticmethod
-    def probability_map_to_locations(size, pmap):
-        # probability map to locations
+    def locations_to_probability_maps(size, locs):
+        pms = []
+        for loc in locs:
+            pm = coord_utils.location_to_probability_map(size, loc)
+            pms.append(pm.view(-1))
+        
+        return torch.stack(pms, dim=0)
+
+    @staticmethod
+    def probability_map_to_location(size, pmap):
+        # probability map to location
         pmap = pmap.view(size, size)
 
         xlist = []
@@ -54,26 +66,26 @@ class coord_utils:
         return loc
 
     @staticmethod
-    def normal_to_locations(wid, ht, locations):
-        # Normalized locations to coordinates
+    def normal_to_location(wid, ht, location):
+        # Normalized location to coordinate
         wid *= 1.0
         ht *= 1.0
-        locations[0] *= wid
-        locations[1] *= ht
-        locations[2] *= wid
-        locations[3] *= ht
-        return locations
+        location[0] *= wid
+        location[1] *= ht
+        location[2] *= wid
+        location[3] *= ht
+        return location
 
     @staticmethod
-    def locations_to_normal(wid, ht, locations):
-        # Coordinates to normalized locations
+    def location_to_normal(wid, ht, location):
+        # Coordinates to normalized location
         wid *= 1.0
         ht *= 1.0
-        locations[0] /= wid
-        locations[1] /= ht
-        locations[2] /= wid
-        locations[3] /= ht
-        return locations
+        location[0] /= wid
+        location[1] /= ht
+        location[2] /= wid
+        location[3] /= ht
+        return location
 
     @staticmethod
     def bbox_iou(box1, box2, x1y1x2y2=True):

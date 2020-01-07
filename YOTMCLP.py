@@ -77,7 +77,13 @@ class YOTMCLP(YOTM):
         c_out = c_out.view(c_out.size(0), c_out.size(1), -1)
 
         return c_out
-        
+    
+    def get_targets(self, targets):
+        return targets
+    
+    def get_location(self, pm):
+        return pm
+
     def save_checkpoint(self, model, optimizer, path):
         super().save_checkpoint(model, optimizer, path, 'yotmclp.pth')
 

@@ -10,27 +10,28 @@ class YOT_Base(ABC):
 
         self.batch_size = 6
         self.seq_len = 6
-        #self.img_size = 416
+        self.img_size = 416
         self.epochs = 20
         
         self.check_path = "outputs/checkpoint"
         self.weights_path = "outputs/weights"
+
+        self.mode = 'none'
 
     def proc(self):
         self.pre_proc()
 
         for epoch in range(self.epochs):            
             self.initialize_proc(epoch)
-            listContainer = ListContainer(self.path, self.batch_size, self.seq_len, self.pm_size, 'none')
+            listContainer = ListContainer(self.path, self.batch_size, self.seq_len, self.img_size, self.mode)
             for dataLoader in listContainer:
                 pos = 0
-                for frames, fis, locs, locs_mp, labels in dataLoader:
+                for frames, fis, locs, labels in dataLoader:
                     fis = Variable(fis.to(self.device))
                     locs = Variable(locs.to(self.device))
-                    locs_mp = Variable(locs_mp.to(self.device)) 
                     labels = Variable(labels.to(self.device), requires_grad=False)
 
-                    self.processing(epoch, pos, frames, fis, locs, locs_mp, labels)
+                    self.processing(epoch, pos, frames, fis, locs, labels)
                     pos += 1
 
             self.finalize_proc(epoch)
@@ -42,7 +43,7 @@ class YOT_Base(ABC):
         pass
 
     @abstractmethod
-    def processing(self, epoch, pos, frames, fis, locs, locs_mp, labels):
+    def processing(self, epoch, pos, frames, fis, locs, labels):
         pass
 
     @abstractmethod
@@ -61,7 +62,7 @@ class YOT_Base(ABC):
         d = torch.split(data, self.seq_len -1, dim=1)
         return torch.squeeze(d[1], dim=1)
 
-    def normal_to_locations(self, wid, ht, locations):
+    def normal_to_location(self, wid, ht, locations):
         #print("location in func: ", locations)
         wid *= 1.0
         ht *= 1.0
@@ -70,8 +71,8 @@ class YOT_Base(ABC):
         locations[2] *= wid
         locations[3] *= ht
         return locations
-
-    def locations_to_normal(self, wid, ht, locations):
+    '''
+    def location_to_normal(self, wid, ht, locations):
         #print("location in func: ", locations)
         wid *= 1.0
         ht *= 1.0
@@ -112,5 +113,5 @@ class YOT_Base(ABC):
         iou = inter_area / (b1_area + b2_area - inter_area + 1e-16)
 
         return iou
-
+    '''
 

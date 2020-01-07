@@ -9,9 +9,8 @@ class LLPMParam:
     OutfiSize = 16*13*13
     OutCnnSize = OutfiSize
     LocSize = 5
-    LocMapSize = 32*32
     InLstmSize = OutCnnSize
-    HiddenSize = 512 #4096
+    HiddenSize = 1024 #4096
     LayerSize = 1
     OutputSize = 4
 
@@ -45,7 +44,7 @@ class YimgNet(nn.Module):
         return c_out
 
 
-class LLNet(nn.Module):
+class LocNet(nn.Module):
     def __init__(self, batch_size, seq_len):
         super(LLNet, self).__init__()
         self.batch_size = batch_size
@@ -72,7 +71,7 @@ class YOTMLLP(YOTM):
     def __init__(self, batch_size, seq_len):
         super(YOTMLLP, self).__init__()
         self.yimgnet = YimgNet(batch_size, seq_len)
-        self.llnet = LLNet(batch_size, seq_len)
+        self.locnet = LocNet(batch_size, seq_len)
         self.fc = nn.Linear(LLPMParam.HiddenSize, LLPMParam.OutputSize)
      
     def forward(self, x, l):
@@ -81,7 +80,13 @@ class YOTMLLP(YOTM):
         c_out = c_x + c_l
         c_out = self.fc(c_out)
         return c_out
-        
+    
+    def get_targets(self, targets):
+        return targets
+    
+    def get_location(self, pm):
+        return pm
+
     def save_checkpoint(self, model, optimizer, path):
         super().save_checkpoint(model, optimizer, path, 'yotmllp.pth')
 

@@ -11,6 +11,7 @@ from YOTMONEL import *
 from YOTMROLO import *
 
 from YOTMCLS_PM import *
+from YOTMLLP_PM import *
 
 from coord_utils import *
 
@@ -24,35 +25,11 @@ class Test(YOT_Base):
         self.batch_size = 1
         self.Total_Iou = 0
         self.Total_cnt = 0
-        self.pm_size = 0 #CLSMPMParam.LocMapSize
+        self.mode = 'test'
 
-    def proc(self):
-        self.pre_proc()
-
-        for epoch in range(self.epochs):            
-            self.initialize_proc(epoch)
-            listContainer = ListContainer(self.path, self.batch_size, self.seq_len, self.pm_size, 'test')
-            for dataLoader in listContainer:
-                pos = 0
-                for frames, fis, locs, locs_mp, labels in dataLoader:
-                    fis = Variable(fis.to(self.device))
-                    locs = Variable(locs.to(self.device))
-                    locs_mp = Variable(locs_mp.to(self.device)) 
-                    labels = Variable(labels.to(self.device), requires_grad=False)
-
-                    self.processing(epoch, pos, frames, fis, locs, locs_mp, labels)
-                    pos += 1
-
-            self.finalize_proc(epoch)
-        
-        self.post_proc()
-
-    def processing(self, epoch, pos, frames, fis, locs, locs_mp, labels):
+    def processing(self, epoch, pos, frames, fis, locs, labels):
         with torch.no_grad():            
-            if(self.pm_size > 0):
-                outputs = self.model(fis.float(), locs_mp.float()) 
-            else:
-                outputs = self.model(fis.float(), locs.float())
+            outputs = self.model(fis.float(), locs.float())
             
             img_frames = self.get_last_sequence(frames)
             predicts = self.get_last_sequence(outputs)                
@@ -61,28 +38,29 @@ class Test(YOT_Base):
 
             predict_boxes = []
             for i, (f, o, y, l) in enumerate(zip(img_frames, predicts, yolo_predicts, targets)):
-                if(self.pm_size > 0):
-                    o = coord_utils.probability_map_to_locations(self.pm_size, o)
-                predict_boxes.append(coord_utils.normal_to_locations(f.size(0), f.size(1), o.clamp(min=0)))
-                yolo_predicts[i] = coord_utils.normal_to_locations(f.size(0), f.size(1), y.clamp(min=0))
+                o = self.model.get_location(o)
+                predict_boxes.append(coord_utils.normal_to_location(f.size(0), f.size(1), o.clamp(min=0)))
+                yolo_predicts[i] = coord_utils.normal_to_location(f.size(0), f.size(1), y.clamp(min=0))
 
             self.display_frame(img_frames, yolo_predicts, torch.stack(predict_boxes, dim=0), targets)
                 
-            iou = self.bbox_iou(torch.stack(predict_boxes, dim=0),  targets, False)
-            yiou = self.bbox_iou(yolo_predicts.float(),  targets, False)
+            iou = coord_utils.bbox_iou(torch.stack(predict_boxes, dim=0),  targets, False)
+            yiou = coord_utils.bbox_iou(yolo_predicts.float(),  targets, False)
             print(f"\t{pos} IOU : {iou} - {yiou}")
             self.Total_Iou += torch.sum(iou)
             self.Total_cnt += len(iou) 
 
     def pre_proc(self):
-        if(self.pm_size > 0):         
-            self.model = YOTMCLS_PM(self.batch_size, self.seq_len).to(self.device)
-        else:
-            self.model = YOTMLLP(self.batch_size, self.seq_len).to(self.device)
-            #self.model = YOTMCLP(self.batch_size, self.seq_len).to(self.device)
-            #self.model = YOTMCLS(self.batch_size, self.seq_len).to(self.device)
-            #self.model = YOTMONEL(self.batch_size, self.seq_len).to(self.device)
-            #self.model = YOTMROLO(self.batch_size, self.seq_len).to(self.device)
+        ### Models Using Probability Map
+        #self.model = YOTMLLP_PM(self.batch_size, self.seq_len).to(self.device)
+        self.model = YOTMCLS_PM(self.batch_size, self.seq_len).to(self.device)
+        
+        ### Models Without Probability Map
+        #self.model = YOTMLLP(self.batch_size, self.seq_len).to(self.device)
+        #self.model = YOTMCLP(self.batch_size, self.seq_len).to(self.device)
+        #self.model = YOTMCLS(self.batch_size, self.seq_len).to(self.device)
+        #self.model = YOTMONEL(self.batch_size, self.seq_len).to(self.device)
+        #self.model = YOTMROLO(self.batch_size, self.seq_len).to(self.device)
 
         self.model.load_weights(self.model, self.weights_path)
         self.model.eval()  # Set in evaluation mode

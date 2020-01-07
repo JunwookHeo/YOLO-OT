@@ -2,6 +2,9 @@ import torch
 import torch.nn as nn
 from torch.autograd import Variable
 import torch.nn.functional as F
+
+from coord_utils import *
+
 from YOTM import *
 
 class CLSMPMParam:
@@ -31,7 +34,11 @@ class YimgNet_PM(nn.Module):
         x = F.relu(self.conv3(x))
 
         x = x.view(batch_size, seq_size, -1)
+        
+        l = l.view(batch_size * seq_size, -1)
+        l = coord_utils.locations_to_probability_maps(CLSMPMParam.LocMapSize, l)
         l = l.view(batch_size, seq_size, -1)
+
         c_out = torch.cat((x, l), 2)
         return c_out
 
@@ -67,7 +74,13 @@ class YOTMCLS_PM(YOTM):
         out = self.lstmnet(out)
 
         return out
-        
+    
+    def get_targets(self, targets):
+        return coord_utils.locations_to_probability_maps(CLSMPMParam.LocMapSize, targets)
+
+    def get_location(self, pm):
+        return coord_utils.probability_map_to_location(CLSMPMParam.LocMapSize, pm)
+
     def save_checkpoint(self, model, optimizer, path):
         super().save_checkpoint(model, optimizer, path, 'yotmcls_pm.pth')
 

@@ -29,11 +29,11 @@ class Demo:
                     self.post_proc(frames, imgs, locs, labels)
                     
     def post_proc(self, frames, imgs, locs, labels):
-        loc = self.normal_to_locations(frames[0].shape[0], frames[0].shape[1], locs[0][0:5])
+        loc = self.normal_to_location(frames[0].shape[0], frames[0].shape[1], locs[0][0:5])
         print(loc, labels[0])
         pass
     
-    def normal_to_locations(self, wid, ht, locations):
+    def normal_to_location(self, wid, ht, locations):
         #print("location in func: ", locations)
         wid *= 1.0
         ht *= 1.0

@@ -64,6 +64,12 @@ class YOTMROLO(YOTM):
 
         return out
         
+    def get_targets(self, targets):
+        return targets
+    
+    def get_location(self, pm):
+        return pm
+        
     def save_checkpoint(self, model, optimizer, path):
         super().save_checkpoint(model, optimizer, path, 'yotmrolo.pth')
 

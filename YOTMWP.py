@@ -29,13 +29,8 @@ class YOTMWP(YOTM):
 
         return out[:, self.sequence_length -1 :self.sequence_length, 1:5]
     
-    def get_loss_function(self):
-        self.loss = torch.nn.MSELoss()
-        return self.loss
+    def get_targets(self, targets):
+        return targets
     
-    def coordinates_to_probability_map(self):
-        pass
-
-    def probability_map_to_coordinates(shel):
-        pass
-
+    def get_location(self, pm):
+        return pm

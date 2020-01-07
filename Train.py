@@ -11,6 +11,7 @@ from YOTMONEL import *
 from YOTMROLO import *
 
 from YOTMCLS_PM import *
+from YOTMLLP_PM import *
 
 from coord_utils import *
 
@@ -25,52 +26,42 @@ class Train(YOT_Base):
         self.TotalIou = []
         self.frame_cnt = 0
         self.epochs = 1
-        self.pm_size = 0 #CLSMPMParam.LocMapSize
 
+        self.mode = 'train'
+    '''
     def proc(self):
         self.pre_proc()
 
         for epoch in range(self.epochs):            
             self.initialize_proc(epoch)
-            listContainer = ListContainer(self.path, self.batch_size, self.seq_len, self.pm_size, 'train')
+            listContainer = ListContainer(self.path, self.batch_size, self.seq_len, self.img_size, 'train')
             for dataLoader in listContainer:
                 pos = 0
-                for frames, fis, locs, locs_mp, labels in dataLoader:
+                for frames, fis, locs, labels in dataLoader:
                     fis = Variable(fis.to(self.device))
                     locs = Variable(locs.to(self.device))
-                    locs_mp = Variable(locs_mp.to(self.device)) 
                     labels = Variable(labels.to(self.device), requires_grad=False)
 
-                    self.processing(epoch, pos, frames, fis, locs, locs_mp, labels)
+                    self.processing(epoch, pos, frames, fis, locs, labels)
                     pos += 1
 
             self.finalize_proc(epoch)
         
         self.post_proc()
-    
-    def processing(self, epoch, pos, frames, fis, locs, locs_pm, labels):
-        if(self.pm_size > 0):
-            outputs = self.model(fis.float(), locs_pm.float()) 
-        else:
-            outputs = self.model(fis.float(), locs.float())
+    '''
+
+    def processing(self, epoch, pos, frames, fis, locs, labels):
+        outputs = self.model(fis.float(), locs.float())
         
         img_frames = self.get_last_sequence(frames)
         predicts = self.get_last_sequence(outputs)                
         targets = self.get_last_sequence(labels)
 
-        targets_pm = []
         for i, (f, l) in enumerate(zip(img_frames, targets)):
-            targets[i] = coord_utils.locations_to_normal(f.shape[0], f.shape[1], l)
-            if(self.pm_size > 0):
-                pm = coord_utils.locations_to_probability_map(self.pm_size, l)
-                pm = pm.view(-1)
-                targets_pm.append(pm)
+            targets[i] = coord_utils.location_to_normal(f.shape[0], f.shape[1], l)
         
-        if(self.pm_size > 0):
-            loss = self.loss(predicts, torch.stack(targets_pm, dim=0))            
-        else:
-            loss = self.loss(predicts, targets)
-            #loss = self.iou_loss(img_frames, predicts, targets)
+        target_values = self.model.get_targets(targets)
+        loss = self.loss(predicts, target_values)
         
         loss.backward()
         self.optimizer.step()
@@ -84,10 +75,9 @@ class Train(YOT_Base):
             predict_boxes = []
             target_boxes = []
             for i, (f, p, t) in enumerate(zip(img_frames, predicts, targets)):
-                if(self.pm_size > 0):
-                    p = coord_utils.probability_map_to_locations(self.pm_size, p)
-                predict_boxes.append(coord_utils.normal_to_locations(f.shape[0], f.shape[1], p))
-                target_boxes.append(coord_utils.normal_to_locations(f.shape[0], f.shape[1], t))
+                p = self.model.get_location(p)
+                predict_boxes.append(coord_utils.normal_to_location(f.shape[0], f.shape[1], p))
+                target_boxes.append(coord_utils.normal_to_location(f.shape[0], f.shape[1], t))
                 print("\t", p, t)
             iou = coord_utils.bbox_iou(torch.stack(predict_boxes, dim=0),  torch.stack(target_boxes, dim=0), False)
             self.sum_iou += float(torch.sum(iou))
@@ -96,21 +86,23 @@ class Train(YOT_Base):
     
     def iou_loss(self, frms, predicts, targets):
         for f, p, t in zip(frms, predicts, targets):
-            self.normal_to_locations(f.shape[1], f.shape[2], p)
-            self.normal_to_locations(f.shape[1], f.shape[2], t)
+            self.normal_to_location(f.shape[1], f.shape[2], p)
+            self.normal_to_location(f.shape[1], f.shape[2], t)
 
         iou = self.bbox_iou(predicts, targets, False)
         return torch.sum(1-iou)
 
-    def pre_proc(self):        
-        if(self.pm_size > 0):         
-            self.model = YOTMCLS_PM(self.batch_size, self.seq_len).to(self.device)
-        else:
-            self.model = YOTMLLP(self.batch_size, self.seq_len).to(self.device)
-            #self.model = YOTMCLP(self.batch_size, self.seq_len).to(self.device)
-            #self.model = YOTMCLS(self.batch_size, self.seq_len).to(self.device)
-            #self.model = YOTMONEL(self.batch_size, self.seq_len).to(self.device)
-            #self.model = YOTMROLO(self.batch_size, self.seq_len).to(self.device)
+    def pre_proc(self):
+        ### Models Using Probability Map
+        #self.model = YOTMLLP_PM(self.batch_size, self.seq_len).to(self.device)
+        self.model = YOTMCLS_PM(self.batch_size, self.seq_len).to(self.device)
+        
+        ### Models Without Probability Map
+        #self.model = YOTMLLP(self.batch_size, self.seq_len).to(self.device)
+        #self.model = YOTMCLP(self.batch_size, self.seq_len).to(self.device)
+        #self.model = YOTMCLS(self.batch_size, self.seq_len).to(self.device)
+        #self.model = YOTMONEL(self.batch_size, self.seq_len).to(self.device)
+        #self.model = YOTMROLO(self.batch_size, self.seq_len).to(self.device)
 
         print(self.model)
         self.loss = nn.MSELoss(reduction='sum')
