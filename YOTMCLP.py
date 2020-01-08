@@ -2,7 +2,7 @@ import os
 import torch
 import torch.nn as nn
 from torch.autograd import Variable
-import torch.nn.functional as F
+
 from YOTM import *
 
 class YimgNet(nn.Module):
@@ -21,11 +21,11 @@ class YimgNet(nn.Module):
     def forward(self, x):
         batch_size, seq_size, C, H, W = x.size()
         c_in = x.view(batch_size*seq_size, C, H, W)
-        c_in = F.relu(self.conv1(c_in))
-        c_in = F.relu(self.conv2(c_in))
-        c_in = F.relu(self.conv3(c_in))
-        c_in = F.relu(self.conv4(c_in))
-        c_in = F.relu(self.conv5(c_in))
+        c_in = torch.relu(self.conv1(c_in))
+        c_in = torch.relu(self.conv2(c_in))
+        c_in = torch.relu(self.conv3(c_in))
+        c_in = torch.relu(self.conv4(c_in))
+        c_in = torch.relu(self.conv5(c_in))
         c_in = c_in.view(batch_size*seq_size, -1)
         c_in = self.fc(c_in)
         c_out = c_in.view(batch_size, seq_size, -1)
@@ -80,12 +80,6 @@ class YOTMCLP(YOTM):
         c_out = c_out.view(c_out.size(0), c_out.size(1), -1)
 
         return c_out
-    
-    def get_targets(self, targets):
-        return targets
-    
-    def get_location(self, pm):
-        return pm
 
     def save_checkpoint(self, model, optimizer, path):
         super().save_checkpoint(model, optimizer, path, 'yotmclp.pth')

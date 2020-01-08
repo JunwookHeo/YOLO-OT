@@ -29,7 +29,7 @@ class Test(YOT_Base):
 
     def processing(self, epoch, pos, frames, fis, locs, labels):
         with torch.no_grad():            
-            outputs = self.model(fis.float(), locs.float())
+            outputs = self.model(fis, locs)
             
             img_frames = self.get_last_sequence(frames)
             predicts = self.get_last_sequence(outputs)                
@@ -52,11 +52,11 @@ class Test(YOT_Base):
 
     def pre_proc(self):
         ### Models Using Probability Map
-        #self.model = YOTMLLP_PM(self.batch_size, self.seq_len).to(self.device)
+        self.model = YOTMLLP_PM(self.batch_size, self.seq_len).to(self.device)
         #self.model = YOTMCLS_PM(self.batch_size, self.seq_len).to(self.device)
         
         ### Models Without Probability Map
-        self.model = YOTMLLP(self.batch_size, self.seq_len).to(self.device)
+        #self.model = YOTMLLP(self.batch_size, self.seq_len).to(self.device)
         #self.model = YOTMCLP(self.batch_size, self.seq_len).to(self.device)
         #self.model = YOTMCLS(self.batch_size, self.seq_len).to(self.device)
         #self.model = YOTMONEL(self.batch_size, self.seq_len).to(self.device)

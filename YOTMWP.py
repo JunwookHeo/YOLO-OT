@@ -29,8 +29,3 @@ class YOTMWP(YOTM):
 
         return out[:, self.sequence_length -1 :self.sequence_length, 1:5]
     
-    def get_targets(self, targets):
-        return targets
-    
-    def get_location(self, pm):
-        return pm

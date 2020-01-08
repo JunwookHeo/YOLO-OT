@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 from torch.autograd import Variable
-import torch.nn.functional as F
+
 from YOTM import *
 
 class YimgNet(nn.Module):
@@ -14,9 +14,9 @@ class YimgNet(nn.Module):
     def forward(self, x, l):
         batch_size, seq_size, C, H, W = x.size()
         x = x.view(batch_size*seq_size, C, H, W)
-        x = F.relu(self.conv1(x))
-        x = F.relu(self.conv2(x))
-        x = F.relu(self.conv3(x))
+        x = torch.relu(self.conv1(x))
+        x = torch.relu(self.conv2(x))
+        x = torch.relu(self.conv3(x))
 
         x = x.view(batch_size, seq_size, -1)
         c_out = torch.cat((x, l), 2)
@@ -68,12 +68,6 @@ class YOTMCLS(YOTM):
         out = self.lstmnet(out)
 
         return out
-        
-    def get_targets(self, targets):
-        return targets
-    
-    def get_location(self, pm):
-        return pm
 
     def save_checkpoint(self, model, optimizer, path):
         super().save_checkpoint(model, optimizer, path, 'yotmcls.pth')

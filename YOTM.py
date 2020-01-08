@@ -2,7 +2,6 @@ import os
 import torch
 import torch.nn as nn
 from torch.autograd import Variable
-import torch.nn.functional as F
 
 class YOTM(nn.Module):
     def __init__(self):
@@ -41,3 +40,13 @@ class YOTM(nn.Module):
         if os.path.exists(file):
             model.load_state_dict(torch.load(file), strict=False)
             print(model)
+
+    def get_targets(self, targets):
+        return targets
+    
+    def get_location(self, pm):
+        return pm
+
+    def get_loss_function(self):
+        return nn.MSELoss(reduction='sum')
+

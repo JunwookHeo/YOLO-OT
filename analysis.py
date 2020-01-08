@@ -192,6 +192,24 @@ def test_tensor_sum():
 
     print(S)
 
-test_tensor_sum()
+#test_tensor_sum()
 
+def test_bceloss():
+    m = nn.Sigmoid()
+    loss = nn.BCELoss()
+    input = torch.randn(3, requires_grad=True)
+    target = torch.empty(3).random_(2)
+    output = loss(m(input), target)
+    print(f'input:{m(input)}, target:{target}')
+    print(f'loss:{output}')
+
+#test_bceloss()
+
+def test_binary():
+    m = nn.Sigmoid()
+    input = torch.randn(3, requires_grad=True)
+    output = torch.round(m(input))
+    print(f'input:{m(input)}, output:{output}')
+    
+test_binary()
 

@@ -1,5 +1,4 @@
 import torch
-import torch.nn.functional as F
 
 import pandas as pd
 
@@ -27,13 +26,13 @@ class Train(YOT_Base):
         self.Report = pd.DataFrame(columns=['Loss', 'Train IoU', 'Validate IoU'])
 
         self.frame_cnt = 0
-        self.epochs = 1
+        self.epochs = 2
 
         self.mode = 'train'
 
 
     def processing(self, epoch, pos, frames, fis, locs, labels):
-        outputs = self.model(fis.float(), locs.float())
+        outputs = self.model(fis, locs)
         
         img_frames = self.get_last_sequence(frames)
         predicts = self.get_last_sequence(outputs)                
@@ -87,7 +86,7 @@ class Train(YOT_Base):
         #self.model = YOTMROLO(self.batch_size, self.seq_len).to(self.device)
 
         print(self.model)
-        self.loss = nn.MSELoss(reduction='sum')
+        self.loss = self.model.get_loss_function() # nn.MSELoss(reduction='sum')
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=0.00001)
         self.model.load_checkpoint(self.model, self.optimizer, self.check_path)
         self.model.train()  # Set in training mode

@@ -1,7 +1,6 @@
 import torch
 import torch.nn as nn
 from torch.autograd import Variable
-import torch.nn.functional as F
 
 from coord_utils import *
 
@@ -30,9 +29,9 @@ class YimgNet(nn.Module):
     def forward(self, x):
         batch_size, seq_size, C, H, W = x.size()
         x = x.view(batch_size*seq_size, C, H, W)
-        x = F.relu(self.conv1(x))
-        x = F.relu(self.conv2(x))
-        x = F.relu(self.conv3(x))
+        x = torch.relu(self.conv1(x))
+        x = torch.relu(self.conv2(x))
+        x = torch.relu(self.conv3(x))
 
         x = x.view(batch_size, seq_size, -1)
         c_out, _ = self.lstm(x, self.hidden)
@@ -99,6 +98,9 @@ class YOTMLLP_PM(YOTM):
 
     def get_location(self, pm):
         return coord_utils.probability_map_to_location(self.np.LocMapSize, pm)
+
+    def get_loss_function(self):
+        return nn.MSELoss(reduction='sum')
 
     def save_checkpoint(self, model, optimizer, path):
         super().save_checkpoint(model, optimizer, path, 'yotmllp_pm.pth')

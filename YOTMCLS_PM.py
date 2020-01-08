@@ -1,7 +1,6 @@
 import torch
 import torch.nn as nn
 from torch.autograd import Variable
-import torch.nn.functional as F
 
 from coord_utils import *
 
@@ -19,9 +18,9 @@ class YimgNet_PM(nn.Module):
     def forward(self, x, l):
         batch_size, seq_size, C, H, W = x.size()
         x = x.view(batch_size*seq_size, C, H, W)
-        x = F.relu(self.conv1(x))
-        x = F.relu(self.conv2(x))
-        x = F.relu(self.conv3(x))
+        x = torch.relu(self.conv1(x))
+        x = torch.relu(self.conv2(x))
+        x = torch.relu(self.conv3(x))
 
         x = x.view(batch_size, seq_size, -1)
         

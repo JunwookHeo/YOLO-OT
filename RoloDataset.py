@@ -38,7 +38,6 @@ class RoloDataset(Dataset):
         frames = []
         fis = []
         locs = []
-        locs_pm = []
         labels = []
         
         for i in range(self.seq_num):
@@ -47,7 +46,7 @@ class RoloDataset(Dataset):
             frame = torch.from_numpy(frame)
 
             image = np.load(self.images[pos])
-            image = torch.from_numpy(image)
+            image = torch.from_numpy(image).float()
             fi = image[0:128*52*52].reshape(128, 52, 52)
             loc = image[128*52*52:]
 

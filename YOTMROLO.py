@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 from torch.autograd import Variable
-import torch.nn.functional as F
+
 from YOTM import *
 
 class RoloNet(nn.Module):
@@ -28,7 +28,7 @@ class RoloNet(nn.Module):
         batch_size, seq_size, C, W, H= x.size()
         #x = torch.mean(x, dim=2)
         x = x.view(batch_size* seq_size, C, W, H)
-        x = F.relu(self.conv(x))
+        x = torch.relu(self.conv(x))
         x_out = x.view(batch_size, seq_size, -1)
 
         l_out = l.view(batch_size, seq_size, -1)
@@ -65,12 +65,6 @@ class YOTMROLO(YOTM):
         #return out[0]
 
         return out
-        
-    def get_targets(self, targets):
-        return targets
-    
-    def get_location(self, pm):
-        return pm
         
     def save_checkpoint(self, model, optimizer, path):
         super().save_checkpoint(model, optimizer, path, 'yotmrolo.pth')
