@@ -3,6 +3,7 @@ import torch
 import pandas as pd
 import argparse
 import importlib
+import time
 
 from YOT_Base import YOT_Base
 from ListContainer import *
@@ -36,14 +37,14 @@ class Train(YOT_Base):
     def update_config(self):
         parser = argparse.ArgumentParser()
         
-        parser.add_argument("--epochs", type=int, default=10, help="size of epoch")
+        parser.add_argument("--epochs", type=int, default=4, help="size of epoch")
         parser.add_argument("--save_weights", type=bool, default=True, help="save checkpoint and weights")
         parser.add_argument("--run_mode", type=str, default="train", help="train or test mode")
         parser.add_argument("--model_name", type=str, default="YOTMLLP", help="class name of the model")
 
         return parser.parse_args()
 
-    def processing(self, epoch, pos, frames, fis, locs, labels):
+    def processing(self, epoch, lpos, dpos, frames, fis, locs, labels):
         outputs = self.model(fis, locs)
         
         img_frames = self.get_last_sequence(frames)
@@ -63,8 +64,8 @@ class Train(YOT_Base):
         self.sum_loss += float(loss.data)
         self.frame_cnt += len(predicts)
         
-        if pos % self.log_interval == 0:
-            print('Train pos: {}-{} [Loss: {:.6f}]'.format(epoch, pos, loss.data/len(predicts)))
+        if dpos % self.log_interval == 0:
+            print('Train pos: {}-{}-{} [Loss: {:.6f}]'.format(epoch, lpos, dpos, loss.data/len(predicts)))
             predict_boxes = []
             target_boxes = []
             for i, (f, p, t) in enumerate(zip(img_frames, predicts, targets)):
@@ -112,12 +113,12 @@ class Train(YOT_Base):
         if self.save_weights is True:
             self.model.save_weights(self.model, self.weights_path)
 
-    def initialize_proc(self, epoch):
+    def initialize_processing(self, epoch):
         self.sum_loss = 0
         self.sum_iou = 0
         self.frame_cnt = 0
 
-    def finalize_proc(self, epoch):
+    def finalize_processing(self, epoch):
         avg_loss = self.sum_loss/self.frame_cnt
         train_iou = self.sum_iou/self.frame_cnt        
         validate_iou = self.evaluation()        
@@ -165,8 +166,10 @@ class Train(YOT_Base):
 
 
 def main(argvs):
+    start_time = time.time()
     train = Train(argvs)
     train.proc()
+    print(f'Processing Time : {time.time() - start_time}')    
 
 if __name__=='__main__':
     main('')

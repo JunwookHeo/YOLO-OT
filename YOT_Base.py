@@ -10,7 +10,7 @@ class YOT_Base(ABC):
     def __init__(self,argvs = []):
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-        opt = self.parse_config()
+        opt = self.parse_default_config()
 
         self.data_path = opt.data_config
         self.batch_size = opt.batch_size
@@ -24,7 +24,7 @@ class YOT_Base(ABC):
         self.mode = opt.run_mode
         self.model_name = opt.model_name
 
-    def parse_config(self):
+    def parse_default_config(self):
         parser = argparse.ArgumentParser()
 
         # default argument
@@ -47,19 +47,17 @@ class YOT_Base(ABC):
         self.pre_proc()
 
         for epoch in range(self.epochs):            
-            self.initialize_proc(epoch)
+            self.initialize_processing(epoch)
             listContainer = ListContainer(self.data_path, self.batch_size, self.seq_len, self.img_size, self.mode)
-            for dataLoader in listContainer:
-                pos = 0
-                for frames, fis, locs, labels in dataLoader:
+            for lpos, dataLoader in enumerate(listContainer):
+                for dpos, (frames, fis, locs, labels) in enumerate(dataLoader):
                     fis = Variable(fis.to(self.device))
                     locs = Variable(locs.to(self.device))
                     labels = Variable(labels.to(self.device), requires_grad=False)
 
-                    self.processing(epoch, pos, frames, fis, locs, labels)
-                    pos += 1
+                    self.processing(epoch, lpos, dpos, frames, fis, locs, labels)
 
-            self.finalize_proc(epoch)
+            self.finalize_processing(epoch)
         
         self.post_proc()
 
@@ -68,7 +66,7 @@ class YOT_Base(ABC):
         pass
 
     @abstractmethod
-    def processing(self, epoch, pos, frames, fis, locs, labels):
+    def processing(self, epoch, lpos, dpos, frames, fis, locs, labels):
         pass
 
     @abstractmethod
@@ -76,11 +74,11 @@ class YOT_Base(ABC):
         pass
         
     @abstractmethod
-    def initialize_proc(self, epoch):
+    def initialize_processing(self, epoch):
         pass
 
     @abstractmethod
-    def finalize_proc(self, epoch):
+    def finalize_processing(self, epoch):
         pass
     
     def get_last_sequence(self, data):
@@ -96,47 +94,4 @@ class YOT_Base(ABC):
         locations[2] *= wid
         locations[3] *= ht
         return locations
-    '''
-    def location_to_normal(self, wid, ht, locations):
-        #print("location in func: ", locations)
-        wid *= 1.0
-        ht *= 1.0
-        locations[0] /= wid
-        locations[1] /= ht
-        locations[2] /= wid
-        locations[3] /= ht
-        return locations
-
-    def bbox_iou(self, box1, box2, x1y1x2y2=True):
-        """
-        Returns the IoU of two bounding boxes
-        """
-        if not x1y1x2y2:
-            # Transform from center and width to exact coordinates
-            b1_x1, b1_x2 = box1[:, 0] - box1[:, 2] / 2, box1[:, 0] + box1[:, 2] / 2
-            b1_y1, b1_y2 = box1[:, 1] - box1[:, 3] / 2, box1[:, 1] + box1[:, 3] / 2
-            b2_x1, b2_x2 = box2[:, 0] - box2[:, 2] / 2, box2[:, 0] + box2[:, 2] / 2
-            b2_y1, b2_y2 = box2[:, 1] - box2[:, 3] / 2, box2[:, 1] + box2[:, 3] / 2
-        else:
-            # Get the coordinates of bounding boxes
-            b1_x1, b1_y1, b1_x2, b1_y2 = box1[:, 0], box1[:, 1], box1[:, 2], box1[:, 3]
-            b2_x1, b2_y1, b2_x2, b2_y2 = box2[:, 0], box2[:, 1], box2[:, 2], box2[:, 3]
-
-        # get the corrdinates of the intersection rectangle
-        inter_rect_x1 = torch.max(b1_x1, b2_x1)
-        inter_rect_y1 = torch.max(b1_y1, b2_y1)
-        inter_rect_x2 = torch.min(b1_x2, b2_x2)
-        inter_rect_y2 = torch.min(b1_y2, b2_y2)
-        # Intersection area
-        inter_area = torch.clamp(inter_rect_x2 - inter_rect_x1 + 1, min=0) * torch.clamp(
-            inter_rect_y2 - inter_rect_y1 + 1, min=0
-        )
-        # Union Area
-        b1_area = (b1_x2 - b1_x1 + 1) * (b1_y2 - b1_y1 + 1)
-        b2_area = (b2_x2 - b2_x1 + 1) * (b2_y2 - b2_y1 + 1)
-
-        iou = inter_area / (b1_area + b2_area - inter_area + 1e-16)
-
-        return iou
-    '''
-
+    

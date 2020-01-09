@@ -38,7 +38,7 @@ class Test(YOT_Base):
         
         return parser.parse_args()
 
-    def processing(self, epoch, pos, frames, fis, locs, labels):
+    def processing(self, epoch, lpos, dpos, frames, fis, locs, labels):
         with torch.no_grad():            
             outputs = self.model(fis, locs)
             
@@ -57,7 +57,7 @@ class Test(YOT_Base):
                 
             iou = coord_utils.bbox_iou(torch.stack(predict_boxes, dim=0),  targets, False)
             yiou = coord_utils.bbox_iou(yolo_predicts.float(),  targets, False)
-            print(f"\t{pos} IOU : {iou} - {yiou}")
+            print(f"\t{lpos}-{dpos} IOU : {iou} - {yiou}")
             self.Total_Iou += float(torch.sum(iou))
             self.Total_cnt += len(iou) 
 
@@ -85,11 +85,11 @@ class Test(YOT_Base):
     def post_proc(self):
         pass
 
-    def initialize_proc(self, epoch):
+    def initialize_processing(self, epoch):
         self.Total_Iou = 0
         self.Total_cnt = 0
 
-    def finalize_proc(self, epoch):
+    def finalize_processing(self, epoch):
         print("Avg IOU : ", self.Total_Iou/self.Total_cnt)
 
     def display_frame(self, fs, ys, ps, ts):
