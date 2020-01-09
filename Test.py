@@ -1,5 +1,7 @@
 import torch
 import cv2
+import argparse
+import importlib
 
 from YOT_Base import YOT_Base
 from ListContainer import *
@@ -18,14 +20,23 @@ from coord_utils import *
 class Test(YOT_Base):
     def __init__(self,argvs = []):
         super(Test, self).__init__(argvs)
-        # The path of dataset
-        self.path = "../rolo_data" 
+        ## Change configuration
+        opt = self.update_config()
 
-        self.epochs = 1
-        self.batch_size = 1
-        self.Total_Iou = 0
-        self.Total_cnt = 0
-        self.mode = 'test'
+        self.epochs = opt.epochs
+        self.batch_size = opt.batch_size
+        self.mode = opt.run_mode
+        self.model_name = opt.model_name
+
+    def update_config(self):
+        parser = argparse.ArgumentParser()
+        
+        parser.add_argument("--epochs", type=int, default=1, help="size of epoch")
+        parser.add_argument("--batch_size", type=int, default=1, help="size of each image batch")
+        parser.add_argument("--run_mode", type=str, default="test", help="train or test mode")
+        parser.add_argument("--model_name", type=str, default="YOTMLLP", help="class name of the model")
+        
+        return parser.parse_args()
 
     def processing(self, epoch, pos, frames, fis, locs, labels):
         with torch.no_grad():            
@@ -51,8 +62,12 @@ class Test(YOT_Base):
             self.Total_cnt += len(iou) 
 
     def pre_proc(self):
+        m = importlib.import_module(self.model_name)
+        mobj = getattr(m, self.model_name)
+        self.model = mobj(self.batch_size, self.seq_len).to(self.device)
+
         ### Models Using Probability Map
-        self.model = YOTMLLP_PM(self.batch_size, self.seq_len).to(self.device)
+        #self.model = YOTMLLP_PM(self.batch_size, self.seq_len).to(self.device)
         #self.model = YOTMCLS_PM(self.batch_size, self.seq_len).to(self.device)
         
         ### Models Without Probability Map

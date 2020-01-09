@@ -99,9 +99,6 @@ class YOTMLLP_PM(YOTM):
     def get_location(self, pm):
         return coord_utils.probability_map_to_location(self.np.LocMapSize, pm)
 
-    def get_loss_function(self):
-        return nn.MSELoss(reduction='sum')
-
     def save_checkpoint(self, model, optimizer, path):
         super().save_checkpoint(model, optimizer, path, 'yotmllp_pm.pth')
 

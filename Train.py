@@ -1,6 +1,8 @@
 import torch
 
 import pandas as pd
+import argparse
+import importlib
 
 from YOT_Base import YOT_Base
 from ListContainer import *
@@ -19,17 +21,27 @@ from coord_utils import *
 class Train(YOT_Base):
     def __init__(self,argvs = []):
         super(Train, self).__init__(argvs)
-        self.log_interval = 1
-        # The path of dataset
-        self.path = "../rolo_data"         
         
+        self.log_interval = 1        
         self.Report = pd.DataFrame(columns=['Loss', 'Train IoU', 'Validate IoU'])
 
-        self.frame_cnt = 0
-        self.epochs = 2
+        ## Change configuration
+        opt = self.update_config()
 
-        self.mode = 'train'
+        self.epochs = opt.epochs
+        self.save_weights = opt.save_weights
+        self.mode = opt.run_mode
+        self.model_name = opt.model_name
 
+    def update_config(self):
+        parser = argparse.ArgumentParser()
+        
+        parser.add_argument("--epochs", type=int, default=10, help="size of epoch")
+        parser.add_argument("--save_weights", type=bool, default=True, help="save checkpoint and weights")
+        parser.add_argument("--run_mode", type=str, default="train", help="train or test mode")
+        parser.add_argument("--model_name", type=str, default="YOTMLLP", help="class name of the model")
+
+        return parser.parse_args()
 
     def processing(self, epoch, pos, frames, fis, locs, labels):
         outputs = self.model(fis, locs)
@@ -74,8 +86,12 @@ class Train(YOT_Base):
         return torch.sum(1-iou)
 
     def pre_proc(self):
+        m = importlib.import_module(self.model_name)
+        mobj = getattr(m, self.model_name)
+        self.model = mobj(self.batch_size, self.seq_len).to(self.device)
+
         ### Models Using Probability Map
-        self.model = YOTMLLP_PM(self.batch_size, self.seq_len).to(self.device)
+        #self.model = YOTMLLP_PM(self.batch_size, self.seq_len).to(self.device)
         #self.model = YOTMCLS_PM(self.batch_size, self.seq_len).to(self.device)
         
         ### Models Without Probability Map
@@ -88,12 +104,13 @@ class Train(YOT_Base):
         print(self.model)
         self.loss = self.model.get_loss_function() # nn.MSELoss(reduction='sum')
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=0.00001)
-        self.model.load_checkpoint(self.model, self.optimizer, self.check_path)
+        self.model.load_checkpoint(self.model, self.optimizer, self.weights_path)
         self.model.train()  # Set in training mode
         
     def post_proc(self):
         print("Model", self.model)
-        self.model.save_weights(self.model, self.weights_path)
+        if self.save_weights is True:
+            self.model.save_weights(self.model, self.weights_path)
 
     def initialize_proc(self, epoch):
         self.sum_loss = 0
@@ -106,7 +123,8 @@ class Train(YOT_Base):
         validate_iou = self.evaluation()        
         self.model.train()
         
-        self.model.save_checkpoint(self.model, self.optimizer, self.check_path)
+        if self.save_weights is True:
+            self.model.save_checkpoint(self.model, self.optimizer, self.weights_path)
 
         self.Report = self.Report.append({'Loss':avg_loss, 'Train IoU':train_iou, 'Validate IoU':validate_iou}, ignore_index=True)
         print(self.Report)
@@ -116,7 +134,7 @@ class Train(YOT_Base):
         total_cnt = 0
         self.model.train(False)
 
-        eval_list = ListContainer(self.path, self.batch_size, self.seq_len, self.img_size, 'test')
+        eval_list = ListContainer(self.data_path, self.batch_size, self.seq_len, self.img_size, 'test')
         for dataLoader in eval_list:
             for frames, fis, locs, labels in dataLoader:
                 fis = Variable(fis.to(self.device))

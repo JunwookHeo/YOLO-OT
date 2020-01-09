@@ -32,6 +32,8 @@ class YOTM(nn.Module):
             os.makedirs(path)
 
         file = os.path.join(path, name)
+        if os.path.exists(file):
+            os.rename(file, file+'.bak')
         torch.save(model.state_dict(), file)
 
 

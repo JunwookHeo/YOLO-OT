@@ -15,12 +15,12 @@ class Demo:
         self.num_layers =3
         self.img_size = 416
 
-        self.path = "data"
+        self.data_path = "data"
 
     def run(self):
         
         for epoch in range(1):
-            listContainer = ListContainer(self.path, self.batch_size, self.num_sequence, self.img_size)
+            listContainer = ListContainer(self.data_path, self.batch_size, self.num_sequence, self.img_size)
             for dataLoader in listContainer:
                 print(dataLoader)
                 for frames, imgs, locs, labels in dataLoader:

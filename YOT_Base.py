@@ -4,26 +4,51 @@ from abc import ABC, abstractmethod
 from torch.autograd import Variable
 from ListContainer import *
 
+import argparse
+
 class YOT_Base(ABC):
     def __init__(self,argvs = []):
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-        self.batch_size = 6
-        self.seq_len = 6
-        self.img_size = 416
-        self.epochs = 20
-        
-        self.check_path = "outputs/checkpoint"
-        self.weights_path = "outputs/weights"
+        opt = self.parse_config()
 
-        self.mode = 'none'
+        self.data_path = opt.data_config
+        self.batch_size = opt.batch_size
+        self.seq_len = opt.sequence_length
+        self.img_size = opt.img_size
+        self.epochs = opt.epochs
+        
+        self.weights_path = opt.weights_path
+        self.save_weights = opt.save_weights
+
+        self.mode = opt.run_mode
+        self.model_name = opt.model_name
+
+    def parse_config(self):
+        parser = argparse.ArgumentParser()
+
+        # default argument
+        parser.add_argument("--data_config", type=str, default="../rolo_data", help="path to data config file")
+    
+        parser.add_argument("--epochs", type=int, default=30, help="size of epoch")
+        parser.add_argument("--batch_size", type=int, default=6, help="size of each image batch")
+        parser.add_argument("--sequence_length", type=int, default=6, help="size of each sequence of LSTM")
+        parser.add_argument("--img_size", type=int, default=416, help="size of each image dimension")
+        
+        parser.add_argument("--weights_path", type=str, default="outputs/weights", help="path to weights folder")
+        parser.add_argument("--save_weights", type=bool, default=False, help="save checkpoint and weights")
+
+        parser.add_argument("--run_mode", type=str, default="none", help="train or test mode")        
+        parser.add_argument("--model_name", type=str, default="YOTMLLP", help="class name of the model")
+
+        return parser.parse_args()
 
     def proc(self):
         self.pre_proc()
 
         for epoch in range(self.epochs):            
             self.initialize_proc(epoch)
-            listContainer = ListContainer(self.path, self.batch_size, self.seq_len, self.img_size, self.mode)
+            listContainer = ListContainer(self.data_path, self.batch_size, self.seq_len, self.img_size, self.mode)
             for dataLoader in listContainer:
                 pos = 0
                 for frames, fis, locs, labels in dataLoader:
@@ -37,7 +62,7 @@ class YOT_Base(ABC):
             self.finalize_proc(epoch)
         
         self.post_proc()
-    
+
     @abstractmethod
     def pre_proc(self):
         pass
