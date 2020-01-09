@@ -18,6 +18,7 @@ from YOTMCLS_PM import *
 from YOTMLLP_PM import *
 
 from coord_utils import *
+from logger import logger as LOG
 
 class Train(YOT_Base):
     def __init__(self,argvs = []):
@@ -65,27 +66,19 @@ class Train(YOT_Base):
         self.frame_cnt += len(predicts)
         
         if dpos % self.log_interval == 0:
-            print('Train pos: {}-{}-{} [Loss: {:.6f}]'.format(epoch, lpos, dpos, loss.data/len(predicts)))
+            LOG.info('Train pos: {}-{}-{} [Loss: {:.6f}]'.format(epoch, lpos, dpos, loss.data/len(predicts)))
             predict_boxes = []
             target_boxes = []
             for i, (f, p, t) in enumerate(zip(img_frames, predicts, targets)):
                 p = self.model.get_location(p)
                 predict_boxes.append(coord_utils.normal_to_location(f.shape[0], f.shape[1], p))
                 target_boxes.append(coord_utils.normal_to_location(f.shape[0], f.shape[1], t))
-                print("\t", p, t)
+                LOG.debug(f"\t{p} {t}")
             iou = coord_utils.bbox_iou(torch.stack(predict_boxes, dim=0),  torch.stack(target_boxes, dim=0), False)
             self.sum_iou += float(torch.sum(iou))
                         
-            print("\tIOU : ", iou)
+            LOG.info(f"\tIOU : {iou}")
     
-    def iou_loss(self, frms, predicts, targets):
-        for f, p, t in zip(frms, predicts, targets):
-            self.normal_to_location(f.shape[1], f.shape[2], p)
-            self.normal_to_location(f.shape[1], f.shape[2], t)
-
-        iou = self.bbox_iou(predicts, targets, False)
-        return torch.sum(1-iou)
-
     def pre_proc(self):
         m = importlib.import_module(self.model_name)
         mobj = getattr(m, self.model_name)
@@ -102,14 +95,13 @@ class Train(YOT_Base):
         #self.model = YOTMONEL(self.batch_size, self.seq_len).to(self.device)
         #self.model = YOTMROLO(self.batch_size, self.seq_len).to(self.device)
 
-        print(self.model)
-        self.loss = self.model.get_loss_function() # nn.MSELoss(reduction='sum')
+        self.loss = self.model.get_loss_function()
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=0.00001)
         self.model.load_checkpoint(self.model, self.optimizer, self.weights_path)
         self.model.train()  # Set in training mode
         
     def post_proc(self):
-        print("Model", self.model)
+        LOG.info(f'{self.model}')
         if self.save_weights is True:
             self.model.save_weights(self.model, self.weights_path)
 
@@ -158,7 +150,6 @@ class Train(YOT_Base):
                         
                     iou = coord_utils.bbox_iou(torch.stack(predict_boxes, dim=0),  targets, False)
                     yiou = coord_utils.bbox_iou(yolo_predicts.float(),  targets, False)
-                    #print(f"\tIOU : {iou} - {yiou}")
                     total_iou += float(torch.sum(iou))
                     total_cnt += len(iou)
         
@@ -169,7 +160,7 @@ def main(argvs):
     start_time = time.time()
     train = Train(argvs)
     train.proc()
-    print(f'Processing Time : {time.time() - start_time}')    
+    LOG.info(f'Processing Time : {time.time() - start_time}')    
 
 if __name__=='__main__':
     main('')

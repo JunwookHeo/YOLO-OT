@@ -85,13 +85,4 @@ class YOT_Base(ABC):
         d = torch.split(data, self.seq_len -1, dim=1)
         return torch.squeeze(d[1], dim=1)
 
-    def normal_to_location(self, wid, ht, locations):
-        #print("location in func: ", locations)
-        wid *= 1.0
-        ht *= 1.0
-        locations[0] *= wid
-        locations[1] *= ht
-        locations[2] *= wid
-        locations[3] *= ht
-        return locations
     

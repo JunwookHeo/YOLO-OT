@@ -41,7 +41,6 @@ class YOTM(nn.Module):
         file = os.path.join(path, name)
         if os.path.exists(file):
             model.load_state_dict(torch.load(file), strict=False)
-            print(model)
 
     def get_targets(self, targets):
         return targets

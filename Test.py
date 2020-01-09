@@ -16,6 +16,7 @@ from YOTMCLS_PM import *
 from YOTMLLP_PM import *
 
 from coord_utils import *
+from logger import logger as LOG
 
 class Test(YOT_Base):
     def __init__(self,argvs = []):
@@ -57,7 +58,7 @@ class Test(YOT_Base):
                 
             iou = coord_utils.bbox_iou(torch.stack(predict_boxes, dim=0),  targets, False)
             yiou = coord_utils.bbox_iou(yolo_predicts.float(),  targets, False)
-            print(f"\t{lpos}-{dpos} IOU : {iou} - {yiou}")
+            LOG.debug(f"\t{lpos}-{dpos} IOU : {iou} - {yiou}")
             self.Total_Iou += float(torch.sum(iou))
             self.Total_cnt += len(iou) 
 
@@ -80,17 +81,15 @@ class Test(YOT_Base):
         self.model.load_weights(self.model, self.weights_path)
         self.model.eval()  # Set in evaluation mode
 
-        print(self.model)
-
     def post_proc(self):
-        pass
+        LOG.info(f'{self.model}')
 
     def initialize_processing(self, epoch):
         self.Total_Iou = 0
         self.Total_cnt = 0
 
     def finalize_processing(self, epoch):
-        print("Avg IOU : ", self.Total_Iou/self.Total_cnt)
+        LOG.info("Avg IOU : {:f}".format(self.Total_Iou/self.Total_cnt))
 
     def display_frame(self, fs, ys, ps, ts):
         def draw_rectangle(img, p, c, l):            
