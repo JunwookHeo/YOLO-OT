@@ -146,10 +146,9 @@ class Train(YOT_Base):
 
 
 def main(argvs):
-    start_time = time.time()
     train = Train(argvs)
     train.proc()
-    LOG.info(f'Processing Time : {time.time() - start_time}')    
 
 if __name__=='__main__':
     main('')
+

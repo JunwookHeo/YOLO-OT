@@ -211,5 +211,10 @@ def test_binary():
     output = torch.round(m(input))
     print(f'input:{m(input)}, output:{output}')
     
-test_binary()
+#test_binary()
+
+import time
+start_time = time.time()
+duration = time.strftime('%H:%M:%S', time.gmtime(time.time() - start_time))
+print(f'Processing Time : {duration}')    
 

@@ -1,7 +1,24 @@
 import logging
+import datetime
+import time
 
-logging.basicConfig(level=logging.DEBUG,
-                    format='%(asctime)s.%(msecs)03d %(levelname)s \t%(message)s',
-                    datefmt='%H:%M:%S')
+class ElapsedFormatter(logging.Formatter):
+    def __init__(self, fmt=None, datefmt=None, style='%'):
+        super().__init__(fmt, datefmt, style)
+        self.start_time = time.time()
+    
+    def formatTime(self, record, datefmt=None):
+        ct = time.gmtime(time.time() - self.start_time)
+        if datefmt:
+            s = time.strftime(datefmt, ct)
+        else:
+            t = time.strftime(self.default_time_format, ct)
+            s = self.default_msec_format % (t, record.msecs)
+        return s
+
+__handler = logging.StreamHandler()
+__handler.setFormatter(ElapsedFormatter('%(asctime)s.%(msecs)03d %(levelname)s \t%(message)s', '%H:%M:%S'))
+
 logger = logging.getLogger(__name__)
-
+logger.addHandler(__handler)
+logger.setLevel(logging.DEBUG)
