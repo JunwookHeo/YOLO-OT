@@ -67,22 +67,11 @@ class Test(YOT_Base):
         mobj = getattr(m, self.model_name)
         self.model = mobj(self.batch_size, self.seq_len).to(self.device)
 
-        ### Models Using Probability Map
-        #self.model = YOTMLLP_PM(self.batch_size, self.seq_len).to(self.device)
-        #self.model = YOTMCLS_PM(self.batch_size, self.seq_len).to(self.device)
-        
-        ### Models Without Probability Map
-        #self.model = YOTMLLP(self.batch_size, self.seq_len).to(self.device)
-        #self.model = YOTMCLP(self.batch_size, self.seq_len).to(self.device)
-        #self.model = YOTMCLS(self.batch_size, self.seq_len).to(self.device)
-        #self.model = YOTMONEL(self.batch_size, self.seq_len).to(self.device)
-        #self.model = YOTMROLO(self.batch_size, self.seq_len).to(self.device)
-
         self.model.load_weights(self.model, self.weights_path)
         self.model.eval()  # Set in evaluation mode
 
     def post_proc(self):
-        LOG.info(f'{self.model}')
+        LOG.info(f'\n{self.model}')
 
     def initialize_processing(self, epoch):
         self.Total_Iou = 0

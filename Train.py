@@ -38,7 +38,7 @@ class Train(YOT_Base):
     def update_config(self):
         parser = argparse.ArgumentParser()
         
-        parser.add_argument("--epochs", type=int, default=4, help="size of epoch")
+        parser.add_argument("--epochs", type=int, default=1, help="size of epoch")
         parser.add_argument("--save_weights", type=bool, default=True, help="save checkpoint and weights")
         parser.add_argument("--run_mode", type=str, default="train", help="train or test mode")
         parser.add_argument("--model_name", type=str, default="YOTMLLP", help="class name of the model")
@@ -73,27 +73,16 @@ class Train(YOT_Base):
                 p = self.model.get_location(p)
                 predict_boxes.append(coord_utils.normal_to_location(f.shape[0], f.shape[1], p))
                 target_boxes.append(coord_utils.normal_to_location(f.shape[0], f.shape[1], t))
-                LOG.debug(f"\t{p} {t}")
+                LOG.debug(f"\t{p.data} {t.data}")
             iou = coord_utils.bbox_iou(torch.stack(predict_boxes, dim=0),  torch.stack(target_boxes, dim=0), False)
             self.sum_iou += float(torch.sum(iou))
                         
-            LOG.info(f"\tIOU : {iou}")
+            LOG.info(f"\tIOU : {iou.data}")
     
     def pre_proc(self):
         m = importlib.import_module(self.model_name)
         mobj = getattr(m, self.model_name)
         self.model = mobj(self.batch_size, self.seq_len).to(self.device)
-
-        ### Models Using Probability Map
-        #self.model = YOTMLLP_PM(self.batch_size, self.seq_len).to(self.device)
-        #self.model = YOTMCLS_PM(self.batch_size, self.seq_len).to(self.device)
-        
-        ### Models Without Probability Map
-        #self.model = YOTMLLP(self.batch_size, self.seq_len).to(self.device)
-        #self.model = YOTMCLP(self.batch_size, self.seq_len).to(self.device)
-        #self.model = YOTMCLS(self.batch_size, self.seq_len).to(self.device)
-        #self.model = YOTMONEL(self.batch_size, self.seq_len).to(self.device)
-        #self.model = YOTMROLO(self.batch_size, self.seq_len).to(self.device)
 
         self.loss = self.model.get_loss_function()
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=0.00001)
@@ -101,7 +90,7 @@ class Train(YOT_Base):
         self.model.train()  # Set in training mode
         
     def post_proc(self):
-        LOG.info(f'{self.model}')
+        LOG.info(f'\n{self.model}')
         if self.save_weights is True:
             self.model.save_weights(self.model, self.weights_path)
 
@@ -120,7 +109,7 @@ class Train(YOT_Base):
             self.model.save_checkpoint(self.model, self.optimizer, self.weights_path)
 
         self.Report = self.Report.append({'Loss':avg_loss, 'Train IoU':train_iou, 'Validate IoU':validate_iou}, ignore_index=True)
-        print(self.Report)
+        LOG.info(f'\n{self.Report}')
 
     def evaluation(self):
         total_iou = 0
