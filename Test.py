@@ -37,7 +37,9 @@ class Test(YOT_Base):
         parser.add_argument("--run_mode", type=str, default="test", help="train or test mode")
         parser.add_argument("--model_name", type=str, default="YOTMLLP", help="class name of the model")
         
-        return parser.parse_args()
+        args, _ = parser.parse_known_args()
+        return args
+
 
     def processing(self, epoch, lpos, dpos, frames, fis, locs, labels):
         with torch.no_grad():            
