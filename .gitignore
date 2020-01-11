@@ -110,4 +110,6 @@ Dataset
 data/
 outputs/
 outputs_*/
+*.mp4
+*.jpg
 
