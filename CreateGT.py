@@ -2,7 +2,14 @@ import argparse
 import cv2
 import numpy as np
 
-class CreateGT:
+class CreateGT(object):
+    class CGT:
+        gt = None
+        pos = 0
+        img_size = (0, 0)
+        img_name = None
+        frame = None
+        
     def __init__(self):
         opt = self.parse_config()
 
@@ -29,38 +36,39 @@ class CreateGT:
         
     def run(self):
         end = int(self.cap.get(cv2.CAP_PROP_FRAME_COUNT))
-        gt = np.zeros((end, 4), dtype=int)        
-        while self.cap.isOpened():
-            pos = int(self.cap.get(cv2.CAP_PROP_POS_FRAMES))            
-            print(pos, gt[pos])
+        gt = self.CGT()
+        gt.gt = np.zeros((end, 4), dtype=int)
+        gt.img_name = self.image_path
 
+        while self.cap.isOpened():
+            pos = int(self.cap.get(cv2.CAP_PROP_POS_FRAMES))        
             ret, frame = self.cap.read()
-            self.shape = frame.shape
             if ret:
+                gt.pos = pos
+                gt.frame = frame      
+                print(pos, gt.gt[pos])
+
+                self.shape = frame.shape
+                gt.img_size = (frame.shape[1], frame.shape[0])
+
                 cv2.imshow(self.image_path, frame)
-                cv2.setMouseCallback(self.image_path, CreateGT.mouse_event_handler, gt[pos])
-                key = cv2.waitKey(0) & 0xFF
+                cv2.setMouseCallback(self.image_path, CreateGT.mouse_event_handler, gt)
+                key = cv2.waitKey() & 0xFF
                 if key == ord('q'):
                     break
                 elif key == ord('n'):
-                    self.cap.set(cv2.CAP_PROP_POS_FRAMES, min(pos + 1, end))
+                    self.cap.set(cv2.CAP_PROP_POS_FRAMES, min(pos + 1, end - 1))
                 elif key == ord('p'):
                     self.cap.set(cv2.CAP_PROP_POS_FRAMES, max(pos - 1, 0))
-                else:
+                elif key != 0xFF:
                     self.cap.set(cv2.CAP_PROP_POS_FRAMES, pos)
             else:
                 break
 
         cv2.destroyAllWindows()
-        self.save_gt(gt)
+        self.save_gt(gt.gt)
 
     def save_gt(self, gt):
-        print(gt)
-        gt[..., 0] = np.clip(gt[..., 0], 0, self.shape[1])
-        gt[..., 1] = np.clip(gt[..., 1], 0, self.shape[0])
-        gt[..., 2] = np.clip(gt[..., 2], 0, self.shape[1])
-        gt[..., 3] = np.clip(gt[..., 3], 0, self.shape[0])
-        
         gt[..., 2] = gt[..., 2] - gt[..., 0]
         gt[..., 3] = gt[..., 3] - gt[..., 1]
 
@@ -68,19 +76,30 @@ class CreateGT:
 
     @staticmethod
     def mouse_event_handler(event, x, y, flags, param):
+        gt = param
+        rect = gt.gt[gt.pos]
         if event == cv2.EVENT_LBUTTONDOWN:
-            param[0] = x
-            param[1] = y
+            rect[0] = x
+            rect[1] = y
         elif event == cv2.EVENT_LBUTTONUP:
-            param[2] = x
-            param[3] = y
-            if param[0] > x:
-                param[2] = param[0]
-                param[0] = x
-            if param[1] > y:
-                param[3] = param[1]
-                param[1] = y
-            print(param)
+            rect[2] = x
+            rect[3] = y
+            if rect[0] > x:
+                rect[2] = rect[0]
+                rect[0] = x
+            if rect[1] > y:
+                rect[3] = rect[1]
+                rect[1] = y
+            
+            rect[0] = np.clip(rect[0], 0, gt.img_size[0] - 1)
+            rect[1] = np.clip(rect[1], 0, gt.img_size[1] - 1)
+            rect[2] = np.clip(rect[2], 0, gt.img_size[0] - 1)
+            rect[3] = np.clip(rect[3], 0, gt.img_size[1] - 1)
+
+            img = gt.frame.copy()
+            cv2.rectangle(img, (rect[0], rect[1]), (rect[2], rect[3]), (0, 255, 0), 1)
+            cv2.imshow(gt.img_name, img)
+            print(gt.pos, rect)
 
 def main(argvs):
     cgt = CreateGT()
