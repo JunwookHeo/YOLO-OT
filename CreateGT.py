@@ -68,36 +68,30 @@ class CreateGT(object):
         cv2.destroyAllWindows()
         self.save_gt(gt.gt)
 
-    def save_gt(self, gt):
-        gt[..., 2] = gt[..., 2] - gt[..., 0]
-        gt[..., 3] = gt[..., 3] - gt[..., 1]
-
+    def save_gt(self, gt):        
         np.savetxt(self.name, gt, delimiter=',', fmt='%d')
+        print(gt)
 
     @staticmethod
     def mouse_event_handler(event, x, y, flags, param):
         gt = param
         rect = gt.gt[gt.pos]
+        x = np.clip(x, 0, gt.img_size[0] - 1)
+        y = np.clip(y, 0, gt.img_size[1] - 1)
+        
         if event == cv2.EVENT_LBUTTONDOWN:
             rect[0] = x
             rect[1] = y
         elif event == cv2.EVENT_LBUTTONUP:
-            rect[2] = x
-            rect[3] = y
+            rect[2] = abs(rect[0] - x)
+            rect[3] = abs(rect[1] - y)
             if rect[0] > x:
-                rect[2] = rect[0]
                 rect[0] = x
-            if rect[1] > y:
-                rect[3] = rect[1]
+            if rect[1] > y:                
                 rect[1] = y
             
-            rect[0] = np.clip(rect[0], 0, gt.img_size[0] - 1)
-            rect[1] = np.clip(rect[1], 0, gt.img_size[1] - 1)
-            rect[2] = np.clip(rect[2], 0, gt.img_size[0] - 1)
-            rect[3] = np.clip(rect[3], 0, gt.img_size[1] - 1)
-
             img = gt.frame.copy()
-            cv2.rectangle(img, (rect[0], rect[1]), (rect[2], rect[3]), (0, 255, 0), 1)
+            cv2.rectangle(img, (rect[0], rect[1]), (rect[2]+rect[0], rect[3]+rect[1]), (0, 255, 0), 1)
             cv2.imshow(gt.img_name, img)
             print(gt.pos, rect)
 
