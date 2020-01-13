@@ -76,8 +76,8 @@ class CreateGT(object):
     def mouse_event_handler(event, x, y, flags, param):
         gt = param
         rect = gt.gt[gt.pos]
-        x = np.clip(x, 0, gt.img_size[0] - 1)
-        y = np.clip(y, 0, gt.img_size[1] - 1)
+        x = max(0, min(x, gt.img_size[0] - 1))
+        y = max(0, min(y, gt.img_size[1] - 1))
         
         if event == cv2.EVENT_LBUTTONDOWN:
             rect[0] = x
