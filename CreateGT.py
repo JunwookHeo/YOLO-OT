@@ -93,6 +93,7 @@ class CreateGT(object):
             img = gt.frame.copy()
             cv2.rectangle(img, (rect[0], rect[1]), (rect[2]+rect[0], rect[3]+rect[1]), (0, 255, 0), 1)
             cv2.imshow(gt.img_name, img)
+            cv2.displayStatusBar(gt.img_name, f'{gt.pos} : {rect}')
             print(gt.pos, rect)
 
 def main(argvs):
