@@ -69,14 +69,3 @@ class YOTMCLS(YOTM):
 
         return out
 
-    def save_checkpoint(self, model, optimizer, path):
-        super().save_checkpoint(model, optimizer, path, 'yotmcls.pth')
-
-    def load_checkpoint(self, model, optimizer, path):
-        super().load_checkpoint(model, optimizer, path, 'yotmcls.pth')
-
-    def save_weights(self, model, path):
-        super().save_weights(model, path, 'yotmcls.weights')
-
-    def load_weights(self, model, path):
-        super().load_weights(model, path, 'yotmcls.weights')

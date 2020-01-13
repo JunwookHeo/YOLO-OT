@@ -65,15 +65,4 @@ class YOTMROLO(YOTM):
         #return out[0]
 
         return out
-        
-    def save_checkpoint(self, model, optimizer, path):
-        super().save_checkpoint(model, optimizer, path, 'yotmrolo.pth')
 
-    def load_checkpoint(self, model, optimizer, path):
-        super().load_checkpoint(model, optimizer, path, 'yotmrolo.pth')
-
-    def save_weights(self, model, path):
-        super().save_weights(model, path, 'yotmrolo.weights')
-
-    def load_weights(self, model, path):
-        super().load_weights(model, path, 'yotmrolo.weights')

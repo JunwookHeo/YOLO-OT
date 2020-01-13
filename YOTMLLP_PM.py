@@ -99,15 +99,3 @@ class YOTMLLP_PM(YOTM):
     def get_location(self, pm):
         return coord_utils.probability_map_to_location(self.np.LocMapSize, pm)
 
-    def save_checkpoint(self, model, optimizer, path):
-        super().save_checkpoint(model, optimizer, path, 'yotmllp_pm.pth')
-
-    def load_checkpoint(self, model, optimizer, path):
-        super().load_checkpoint(model, optimizer, path, 'yotmllp_pm.pth')
-
-    def save_weights(self, model, path):
-        super().save_weights(model, path, 'yotmllp_pm.weights')
-
-    def load_weights(self, model, path):
-        super().load_weights(model, path, 'yotmllp_pm.weights')
-

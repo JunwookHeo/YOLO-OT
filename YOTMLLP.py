@@ -86,15 +86,3 @@ class YOTMLLP(YOTM):
         c_out = self.fc(c_out)
         return c_out
     
-    def save_checkpoint(self, model, optimizer, path):
-        super().save_checkpoint(model, optimizer, path, 'yotmllp.pth')
-
-    def load_checkpoint(self, model, optimizer, path):
-        super().load_checkpoint(model, optimizer, path, 'yotmllp.pth')
-
-    def save_weights(self, model, path):
-        super().save_weights(model, path, 'yotmllp.weights')
-
-    def load_weights(self, model, path):
-        super().load_weights(model, path, 'yotmllp.weights')
-

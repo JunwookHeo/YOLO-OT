@@ -82,15 +82,3 @@ class YOTMCLSM(YOTM):
         c_out = self.lstmnet(c_out)
 
         return c_out
-
-    def save_checkpoint(self, model, optimizer, path):
-        super().save_checkpoint(model, optimizer, path, __name__.lower() + '.pth')
-
-    def load_checkpoint(self, model, optimizer, path):
-        super().load_checkpoint(model, optimizer, path, __name__.lower() + '.pth')
- 
-    def save_weights(self, model, path):
-        super().save_weights(model, path, __name__.lower() + '.weights')
-
-    def load_weights(self, model, path):
-        super().load_weights(model, path, __name__.lower() + '.weights')

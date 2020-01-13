@@ -55,16 +55,4 @@ class YOTMONEL(YOTM):
         out = out.view(batch_size, seq_size, -1)
         '''
         return out
-        
-    def save_checkpoint(self, model, optimizer, path):
-        super().save_checkpoint(model, optimizer, path, 'yotmonel.pth')
-
-    def load_checkpoint(self, model, optimizer, path):
-        super().load_checkpoint(model, optimizer, path, 'yotmonel.pth')
-
-    def save_weights(self, model, path):
-        super().save_weights(model, path, 'yotmonel.weights')
-
-    def load_weights(self, model, path):
-        super().load_weights(model, path, 'yotmonel.weights')
-
+    
