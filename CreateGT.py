@@ -16,7 +16,7 @@ class CreateGT(object):
         ap = argparse.ArgumentParser()
         ap.add_argument("--mode", default="cgt_yolo", help="vtoi:video to image files, vyolo:view yolo gt, \
                         cgt_yolo:create gt for yolo, cgt_yot:create gt for yot")
-        ap.add_argument("--image_path", default="../yot_data/tennis_01.mp4", help="Path to the image/video file or dir")
+        ap.add_argument("--image_path", default="../yot_data/images", help="Path to the image/video file or dir")
         args, _ = ap.parse_known_args()
         return args
     
@@ -27,15 +27,7 @@ class CreateGT(object):
         self.mode = opt.mode  
             
     def check_video_file(self, path):
-        if path.lower().endswith(('.avi', '.mp4')):
-            self.name = os.path.join(os.path.dirname(path), 'groundtruth_rect.txt')
-        else:
-            assert False, 'Error : Unknown file format!!!'
-
-    def check_image_file(self, path):
-        if path.lower().endswith(('.png', '.jpg')):
-            self.name = self.image_path.replace(".png", ".txt").replace(".jpg", ".txt")
-        else:
+        if not path.lower().endswith(('.avi', '.mp4')):
             assert False, 'Error : Unknown file format!!!'
 
     def vtoi(self, path):
@@ -76,7 +68,7 @@ class CreateGT(object):
         isRun = True
         while(isRun):
             f = os.path.join(path, files[pos])
-            self.check_image_file(f)
+            self.check_yolo_image_file(f)
             cap = cv2.VideoCapture(f) 
             assert cap.isOpened(), 'Cannot open source'
             while cap.isOpened():
@@ -95,57 +87,59 @@ class CreateGT(object):
                         pos = max(pos - 1, 0)                        
                 else:
                     break
-                
                     
             cv2.destroyAllWindows()
-            
             print(f)
 
         pass
 
     def cgt(self, path):
-        self.check_video_file(path)
-
-        cap = cv2.VideoCapture(path) 
-        assert cap.isOpened(), 'Cannot open source'
-
-        end = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+        files = [f for f in os.listdir(path) if f.lower().endswith(('.png', '.jpg'))]
+        pos = 0
+        end = len(files)
+        isRun = True
         gt = self.CGT()
         gt.gt = np.zeros((end, 4), dtype=float)
         gt.img_name = self.image_path
 
-        while cap.isOpened():
-            pos = int(cap.get(cv2.CAP_PROP_POS_FRAMES))        
-            ret, frame = cap.read()
-            if ret:
-                gt.pos = pos
-                gt.frame = frame
-                gt.mode = self.mode
-                print(pos, gt.gt[pos])
+        while(isRun):
+            f = os.path.join(path, files[pos])
+            cap = cv2.VideoCapture(f) 
+            assert cap.isOpened(), 'Cannot open source'        
+            while cap.isOpened():
+                ret, frame = cap.read()                
+                if ret:
+                    gt.pos = pos
+                    gt.frame = frame
+                    gt.mode = self.mode
+                    print(pos, gt.gt[pos])
 
-                self.shape = frame.shape
-                gt.img_size = (frame.shape[1], frame.shape[0])
+                    self.shape = frame.shape
+                    gt.img_size = (frame.shape[1], frame.shape[0])
 
-                cv2.imshow(self.image_path, frame)
-                cv2.setMouseCallback(self.image_path, CreateGT.mouse_event_handler, gt)
-                key = cv2.waitKey() & 0xFF
-                if key == ord('q'):
+                    cv2.imshow(self.image_path, frame)
+                    cv2.setMouseCallback(self.image_path, CreateGT.mouse_event_handler, gt)
+                    key = cv2.waitKey() & 0xFF
+                    if key == ord('q'):
+                        isRun = False
+                        break
+                    elif key == ord('n'):
+                        pos = min(pos + 1, end - 1)
+                    elif key == ord('p'):
+                        pos = max(pos - 1, 0)
+                else:
                     break
-                elif key == ord('n'):
-                    cap.set(cv2.CAP_PROP_POS_FRAMES, min(pos + 1, end - 1))
-                elif key == ord('p'):
-                    cap.set(cv2.CAP_PROP_POS_FRAMES, max(pos - 1, 0))
-                elif key != 0xFF:
-                    cap.set(cv2.CAP_PROP_POS_FRAMES, pos)
-            else:
-                break
 
-        cv2.destroyAllWindows()
+            cv2.destroyAllWindows()
         
-        if self.mode == 'cgt_yot':
-            np.savetxt(self.name, gt.gt.astype(int), delimiter=',', fmt='%d')
+        if self.mode == 'cgt_yot':            
+            name = os.path.join(path, 'groundtruth_rect.txt')      
+            np.savetxt(name, gt.gt.astype(int), delimiter=',', fmt='%d')
         elif self.mode == 'cgt_yolo':
-            np.savetxt(self.name, gt.gt, delimiter=',', fmt='%.06f')
+            for i, f in enumerate(files):
+                name = f.replace(".png", ".txt").replace(".jpg", ".txt")
+                name = os.path.join(path, name)
+                np.savetxt(name, [gt.gt[i]], delimiter=',', fmt='%.06f')
 
     def run(self):
         if self.mode is 'vtoi':

@@ -31,7 +31,7 @@ class YOT_Base(ABC):
         parser.add_argument("--data_config", type=str, default="../rolo_data", help="path to data config file")
     
         parser.add_argument("--epochs", type=int, default=30, help="size of epoch")
-        parser.add_argument("--batch_size", type=int, default=6, help="size of each image batch")
+        parser.add_argument("--batch_size", type=int, default=16, help="size of each image batch")
         parser.add_argument("--sequence_length", type=int, default=6, help="size of each sequence of LSTM")
         parser.add_argument("--img_size", type=int, default=416, help="size of each image dimension")
         
