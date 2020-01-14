@@ -1,6 +1,7 @@
 import argparse
 import cv2
 import numpy as np
+import os
 
 class CreateGT(object):
     class CGT:
@@ -9,43 +10,117 @@ class CreateGT(object):
         img_size = (0, 0)
         img_name = None
         frame = None
-        
+        mode = None
+
+    def parse_config(self):
+        ap = argparse.ArgumentParser()
+        ap.add_argument("--mode", default="cgt_yolo", help="vtoi:video to image files, vyolo:view yolo gt, \
+                        cgt_yolo:create gt for yolo, cgt_yot:create gt for yot")
+        ap.add_argument("--image_path", default="../yot_data/tennis_01.mp4", help="Path to the image/video file or dir")
+        args, _ = ap.parse_known_args()
+        return args
+    
     def __init__(self):
         opt = self.parse_config()
 
-        self.image_path = opt.image_path        
-        
-        if self.image_path.lower().endswith(('.png', '.jpg')):
-            self.name = self.image_path.replace(".png", ".txt").replace(".jpg", ".txt")
-        elif self.image_path.lower().endswith(('.avi', '.mp4')):
-            self.name = 'groundtruth_rect.txt'
+        self.image_path = opt.image_path
+        self.mode = opt.mode  
+            
+    def check_video_file(self, path):
+        if path.lower().endswith(('.avi', '.mp4')):
+            self.name = os.path.join(os.path.dirname(path), 'groundtruth_rect.txt')
         else:
             assert False, 'Error : Unknown file format!!!'
-        
-        self.load_image(self.image_path)
-        
-    def parse_config(self):
-        ap = argparse.ArgumentParser()
-        ap.add_argument("--image_path", default="../yot_data/tennis_03.mp4", help="Path to the image file")
-        args, _ = ap.parse_known_args()
-        return args
 
-    def load_image(self, path):
-        self.cap = cv2.VideoCapture(path) 
+    def check_image_file(self, path):
+        if path.lower().endswith(('.png', '.jpg')):
+            self.name = self.image_path.replace(".png", ".txt").replace(".jpg", ".txt")
+        else:
+            assert False, 'Error : Unknown file format!!!'
+
+    def vtoi(self, path):
+        self.check_video_file(path)
+
+        img_path = os.path.join(os.path.dirname(path), 'images')
+        if not os.path.exists(img_path):
+            os.makedirs(img_path)
+        
+        self.cap = cv2.VideoCapture(self.image_path) 
         assert self.cap.isOpened(), 'Cannot open source'
-        
-    def run(self):
-        end = int(self.cap.get(cv2.CAP_PROP_FRAME_COUNT))
-        gt = self.CGT()
-        gt.gt = np.zeros((end, 4), dtype=int)
-        gt.img_name = self.image_path
-
         while self.cap.isOpened():
-            pos = int(self.cap.get(cv2.CAP_PROP_POS_FRAMES))        
+            pos = int(self.cap.get(cv2.CAP_PROP_POS_FRAMES))    
             ret, frame = self.cap.read()
             if ret:
+                cv2.imwrite(os.path.join(img_path, '{:04d}.jpg'.format(pos+1)), frame)
+                print(f'saved {os.path.join(img_path, "{:04d}.jpg".format(pos+1))}')
+            else:
+                break;        
+    
+    def draw_rect(self, img, path):
+        label_path = path.replace(".png", ".txt").replace(".jpg", ".txt")
+        if os.path.exists(label_path):
+            labels = np.loadtxt(label_path).reshape(-1, 5)
+            for l in labels:
+                x1 = int(l[1]*img.shape[1] - l[3]*img.shape[1]/2)
+                y1 = int(l[2]*img.shape[0] - l[4]*img.shape[0]/2)
+                x2 = int(l[1]*img.shape[1] + l[3]*img.shape[1]/2)
+                y2 = int(l[2]*img.shape[0] + l[4]*img.shape[0]/2)
+                print(l)
+                cv2.rectangle(img, (x1, y1), (x2, y2), (0, 0, 255), 2)
+            cv2.imshow(path, img)
+    
+    def vyolo(self, path):
+        files = [f for f in os.listdir(path) if f.lower().endswith(('.png', '.jpg'))]
+        pos = 0
+        end = len(files)
+        isRun = True
+        while(isRun):
+            f = os.path.join(path, files[pos])
+            self.check_image_file(f)
+            cap = cv2.VideoCapture(f) 
+            assert cap.isOpened(), 'Cannot open source'
+            while cap.isOpened():
+                ret, frame = cap.read()
+                if ret:
+                    cv2.imshow(f, frame)
+                    self.draw_rect(frame, f)
+                    key = cv2.waitKey() & 0xFF
+
+                    if key == ord('q'):
+                        isRun = False
+                        break
+                    elif key == ord('n'):
+                        pos = min(pos + 1, end - 1)
+                    elif key == ord('p'):
+                        pos = max(pos - 1, 0)                        
+                else:
+                    break
+                
+                    
+            cv2.destroyAllWindows()
+            
+            print(f)
+
+        pass
+
+    def cgt(self, path):
+        self.check_video_file(path)
+
+        cap = cv2.VideoCapture(path) 
+        assert cap.isOpened(), 'Cannot open source'
+
+        end = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+        gt = self.CGT()
+        gt.gt = np.zeros((end, 4), dtype=float)
+        gt.img_name = self.image_path
+
+        while cap.isOpened():
+            pos = int(cap.get(cv2.CAP_PROP_POS_FRAMES))        
+            ret, frame = cap.read()
+            if ret:
                 gt.pos = pos
-                gt.frame = frame      
+                gt.frame = frame
+                gt.mode = self.mode
                 print(pos, gt.gt[pos])
 
                 self.shape = frame.shape
@@ -57,20 +132,30 @@ class CreateGT(object):
                 if key == ord('q'):
                     break
                 elif key == ord('n'):
-                    self.cap.set(cv2.CAP_PROP_POS_FRAMES, min(pos + 1, end - 1))
+                    cap.set(cv2.CAP_PROP_POS_FRAMES, min(pos + 1, end - 1))
                 elif key == ord('p'):
-                    self.cap.set(cv2.CAP_PROP_POS_FRAMES, max(pos - 1, 0))
+                    cap.set(cv2.CAP_PROP_POS_FRAMES, max(pos - 1, 0))
                 elif key != 0xFF:
-                    self.cap.set(cv2.CAP_PROP_POS_FRAMES, pos)
+                    cap.set(cv2.CAP_PROP_POS_FRAMES, pos)
             else:
                 break
 
         cv2.destroyAllWindows()
-        self.save_gt(gt.gt)
+        
+        if self.mode == 'cgt_yot':
+            np.savetxt(self.name, gt.gt.astype(int), delimiter=',', fmt='%d')
+        elif self.mode == 'cgt_yolo':
+            np.savetxt(self.name, gt.gt, delimiter=',', fmt='%.06f')
 
-    def save_gt(self, gt):        
-        np.savetxt(self.name, gt, delimiter=',', fmt='%d')
-        print(gt)
+    def run(self):
+        if self.mode is 'vtoi':
+            self.vtoi(self.image_path)
+        elif self.mode is 'vyolo':
+            self.vyolo(self.image_path)
+        elif self.mode is 'cgt_yot' or self.mode is 'cgt_yolo':
+            self.cgt(self.image_path)
+        else:
+            assert False, 'Error : Unknown mode!!!'
 
     @staticmethod
     def mouse_event_handler(event, x, y, flags, param):
@@ -91,10 +176,15 @@ class CreateGT(object):
                 rect[1] = y
             
             img = gt.frame.copy()
-            cv2.rectangle(img, (rect[0], rect[1]), (rect[2]+rect[0], rect[3]+rect[1]), (0, 255, 0), 1)
+            cv2.rectangle(img, (int(rect[0]), int(rect[1])), (int(rect[2]+rect[0]), int(rect[3]+rect[1])), (0, 255, 0), 1)
             cv2.imshow(gt.img_name, img)
             cv2.displayStatusBar(gt.img_name, f'{gt.pos} : {rect}')
             print(gt.pos, rect)
+            if gt.mode == 'cgt_yolo':                
+                rect[0] = (rect[0] + rect[2]/2)/gt.img_size[0]
+                rect[1] = (rect[1] + rect[3]/2)/gt.img_size[1]
+                rect[2] = rect[2]/gt.img_size[0]
+                rect[3] = rect[3]/gt.img_size[1]
 
 def main(argvs):
     cgt = CreateGT()
