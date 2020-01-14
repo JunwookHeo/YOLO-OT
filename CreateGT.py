@@ -26,7 +26,7 @@ class CreateGT(object):
         
     def parse_config(self):
         ap = argparse.ArgumentParser()
-        ap.add_argument("--image_path", default="dog.jpg", help="Path to the image file")
+        ap.add_argument("--image_path", default="../yot_data/tennis_03.mp4", help="Path to the image file")
         args, _ = ap.parse_known_args()
         return args
 

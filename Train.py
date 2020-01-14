@@ -40,7 +40,7 @@ class Train(YOT_Base):
     def update_config(self):
         parser = argparse.ArgumentParser()
         
-        parser.add_argument("--epochs", type=int, default=5, help="size of epoch")
+        parser.add_argument("--epochs", type=int, default=30, help="size of epoch")
         parser.add_argument("--save_weights", type=bool, default=True, help="save checkpoint and weights")
         parser.add_argument("--run_mode", type=str, default="train", help="train or test mode")
         parser.add_argument("--model_name", type=str, default="YOTMLLP", help="class name of the model")
