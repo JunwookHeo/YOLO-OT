@@ -92,12 +92,17 @@ class coord_utils:
         """
         Returns the IoU of two bounding boxes
         """
-        if not x1y1x2y2:
+        if not x1y1x2y2: # (x1, y1, w, h)
             # Transform from center and width to exact coordinates
-            b1_x1, b1_x2 = box1[:, 0] - box1[:, 2] / 2, box1[:, 0] + box1[:, 2] / 2
-            b1_y1, b1_y2 = box1[:, 1] - box1[:, 3] / 2, box1[:, 1] + box1[:, 3] / 2
-            b2_x1, b2_x2 = box2[:, 0] - box2[:, 2] / 2, box2[:, 0] + box2[:, 2] / 2
-            b2_y1, b2_y2 = box2[:, 1] - box2[:, 3] / 2, box2[:, 1] + box2[:, 3] / 2
+            #b1_x1, b1_x2 = box1[:, 0] - box1[:, 2] / 2, box1[:, 0] + box1[:, 2] / 2
+            #b1_y1, b1_y2 = box1[:, 1] - box1[:, 3] / 2, box1[:, 1] + box1[:, 3] / 2
+            #b2_x1, b2_x2 = box2[:, 0] - box2[:, 2] / 2, box2[:, 0] + box2[:, 2] / 2
+            #b2_y1, b2_y2 = box2[:, 1] - box2[:, 3] / 2, box2[:, 1] + box2[:, 3] / 2
+
+            b1_x1, b1_x2 = box1[:, 0], box1[:, 0] + box1[:, 2]
+            b1_y1, b1_y2 = box1[:, 1], box1[:, 1] + box1[:, 3]
+            b2_x1, b2_x2 = box2[:, 0], box2[:, 0] + box2[:, 2]
+            b2_y1, b2_y2 = box2[:, 1], box2[:, 1] + box2[:, 3]
         else:
             # Get the coordinates of bounding boxes
             b1_x1, b1_y1, b1_x2, b1_y2 = box1[:, 0], box1[:, 1], box1[:, 2], box1[:, 3]

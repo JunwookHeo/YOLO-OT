@@ -60,7 +60,7 @@ class Train(YOT_Base):
         for i, (f, l) in enumerate(zip(img_frames, targets)):
             targets[i] = coord_utils.location_to_normal(f.shape[0], f.shape[1], l)
         
-        target_values = self.model.get_targets(targets)
+        target_values = self.model.get_targets(targets.clone())
         loss = self.loss(predicts, target_values)
         
         loss.backward()
@@ -73,7 +73,7 @@ class Train(YOT_Base):
         if dpos % self.log_interval == 0:
             LOG.info('Train pos: {}-{}-{} [Loss: {:.6f}]'.format(epoch, lpos, dpos, loss.data/len(predicts)))
             predict_boxes = []
-            target_boxes = []
+            target_boxes = []        
             for i, (f, p, t) in enumerate(zip(img_frames, predicts, targets)):
                 p = self.model.get_location(p)
                 predict_boxes.append(coord_utils.normal_to_location(f.shape[0], f.shape[1], p))
