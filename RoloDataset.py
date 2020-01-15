@@ -54,7 +54,11 @@ class RoloDataset(Dataset):
             if len(label) < 4:
                 label = self.labels[pos].split(',') # for gt type 1
             
-            label = torch.as_tensor(np.array(label, dtype=int), dtype=torch.float32)
+            # Convert (x1, y1, w, h) into (cx, cy, w, h)
+            label = np.array(label, dtype=float)
+            label[0] += label[2]/2.
+            label[1] += label[3]/2.
+            label = torch.as_tensor(label, dtype=torch.float32)
             
             frames.append(frame)
             fis.append(fi)

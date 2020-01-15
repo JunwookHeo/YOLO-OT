@@ -11,7 +11,12 @@ class coord_utils:
         except IndexError:
             conf = 1.0
 
-        [x1, y1, x2, y2] = [(loc[0]*size).int(), (loc[1]*size).int(), ((loc[0]+loc[2])*size).int(), ((loc[1]+loc[3])*size).int()]
+        cx = loc[0]*size
+        cy = loc[1]*size
+        w = loc[2]*size
+        h = loc[3]*size
+
+        [x1, y1, x2, y2] = [(cx - w/2.).int(), (cy - h/2.).int(), (cx + w/2.).int(), (cy + h/2.).int()]
         if x1 == x2: x2 += 1
         if y1 == y2: y2 += 1
         
@@ -36,7 +41,7 @@ class coord_utils:
 
     @staticmethod
     def probability_map_to_location(size, pmap):
-        # probability map to location
+        # probability map to location (cx, cy, w, h)
         pmap = pmap.view(size, size)
 
         xlist = []
@@ -52,15 +57,12 @@ class coord_utils:
 
         ax = np.array(xlist)
         ay = np.array(ylist)
-        xmean = ax.mean()
-        ymean = ay.mean()
+        x1 = ax.mean()
+        y1 = ay.mean()
 
         k = 3.5 #np.sqrt(2)
         w = ax.std() * k + 0.5
         h = ay.std() * k + 0.5
-
-        x1 = xmean - w/2.
-        y1 = ymean - h/2.
 
         loc = torch.tensor([x1/size, y1/size, w/size, h/size], dtype=torch.float32)
         return loc
@@ -92,17 +94,12 @@ class coord_utils:
         """
         Returns the IoU of two bounding boxes
         """
-        if not x1y1x2y2: # (x1, y1, w, h)
+        if not x1y1x2y2: # (cx, cy, w, h)
             # Transform from center and width to exact coordinates
-            #b1_x1, b1_x2 = box1[:, 0] - box1[:, 2] / 2, box1[:, 0] + box1[:, 2] / 2
-            #b1_y1, b1_y2 = box1[:, 1] - box1[:, 3] / 2, box1[:, 1] + box1[:, 3] / 2
-            #b2_x1, b2_x2 = box2[:, 0] - box2[:, 2] / 2, box2[:, 0] + box2[:, 2] / 2
-            #b2_y1, b2_y2 = box2[:, 1] - box2[:, 3] / 2, box2[:, 1] + box2[:, 3] / 2
-
-            b1_x1, b1_x2 = box1[:, 0], box1[:, 0] + box1[:, 2]
-            b1_y1, b1_y2 = box1[:, 1], box1[:, 1] + box1[:, 3]
-            b2_x1, b2_x2 = box2[:, 0], box2[:, 0] + box2[:, 2]
-            b2_y1, b2_y2 = box2[:, 1], box2[:, 1] + box2[:, 3]
+            b1_x1, b1_x2 = box1[:, 0] - box1[:, 2] / 2, box1[:, 0] + box1[:, 2] / 2
+            b1_y1, b1_y2 = box1[:, 1] - box1[:, 3] / 2, box1[:, 1] + box1[:, 3] / 2
+            b2_x1, b2_x2 = box2[:, 0] - box2[:, 2] / 2, box2[:, 0] + box2[:, 2] / 2
+            b2_y1, b2_y2 = box2[:, 1] - box2[:, 3] / 2, box2[:, 1] + box2[:, 3] / 2
         else:
             # Get the coordinates of bounding boxes
             b1_x1, b1_y1, b1_x2, b1_y2 = box1[:, 0], box1[:, 1], box1[:, 2], box1[:, 3]

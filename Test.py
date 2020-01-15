@@ -87,8 +87,8 @@ class Test(YOT_Base):
 
     def display_frame(self, fs, ys, ps, ts):
         def draw_rectangle(img, p, c, l):            
-            c1 = (p[0].int(), p[1].int())
-            c2 = (p[0].int() + p[2].int(), p[1].int() + p[3].int())
+            c1 = ((p[0] - p[2]/2.).int(), (p[1] - p[3]/2.).int())
+            c2 = ((p[0] + p[2]/2.).int(), (p[1] + p[3]/2.).int())
             cv2.rectangle(img, c1, c2, c, l)
 
         for f, y, p, t in zip(fs, ys, ps, ts):
