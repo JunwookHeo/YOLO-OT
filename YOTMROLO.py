@@ -18,10 +18,10 @@ class RoloNet(nn.Module):
         
         self.conv = nn.Conv2d(128, 1, kernel_size=1)
 
-        self.hidden = self.init_hidden()
+        self.init_hidden()
 
     def init_hidden(self):
-            return (Variable(torch.zeros(self.np.LayerSize, self.batch_size, self.np.HiddenSize)), 
+        self.hidden = (Variable(torch.zeros(self.np.LayerSize, self.batch_size, self.np.HiddenSize)), 
                 Variable(torch.zeros(self.np.LayerSize, self.batch_size, self.np.HiddenSize)))
 
     def forward(self, x, l):
@@ -66,3 +66,6 @@ class YOTMROLO(YOTM):
 
         return out
 
+    def init_hidden(self):
+        self.rolonet.init_hidden()
+    

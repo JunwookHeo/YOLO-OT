@@ -36,7 +36,7 @@ class LstmNet(nn.Module):
         self.hidden = self.init_hidden()
 
     def init_hidden(self):
-            return (Variable(torch.zeros(self.np.LayerSize, self.batch_size, self.np.HiddenSize)), 
+        self.hidden = (Variable(torch.zeros(self.np.LayerSize, self.batch_size, self.np.HiddenSize)), 
                 Variable(torch.zeros(self.np.LayerSize, self.batch_size, self.np.HiddenSize)))
 
     def forward(self, x):
@@ -68,4 +68,8 @@ class YOTMCLS(YOTM):
         out = self.lstmnet(out)
 
         return out
+
+    def init_hidden(self):
+        self.lstmnet.init_hidden()
+    
 

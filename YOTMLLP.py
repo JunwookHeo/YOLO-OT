@@ -17,10 +17,10 @@ class YimgNet(nn.Module):
         
         self.lstm = nn.LSTM(input_size=self.np.OutCnnSize, hidden_size=self.np.HiddenSize, 
                             num_layers=self.np.LayerSize, batch_first=True)
-        self.hidden = self.init_hidden()
+        self.init_hidden()
 
     def init_hidden(self):
-            return (Variable(torch.zeros(self.np.LayerSize, self.batch_size, self.np.HiddenSize)), 
+        self.hidden = (Variable(torch.zeros(self.np.LayerSize, self.batch_size, self.np.HiddenSize)), 
                 Variable(torch.zeros(self.np.LayerSize, self.batch_size, self.np.HiddenSize)))
 
     def forward(self, x):
@@ -45,10 +45,10 @@ class LocNet(nn.Module):
         
         self.lstm = nn.LSTM(input_size=self.np.LocSize, hidden_size=self.np.HiddenSize, 
                             num_layers=self.np.LayerSize, batch_first=True)
-        self.hidden = self.init_hidden()
+        self.init_hidden()
         
     def init_hidden(self):
-            return (Variable(torch.zeros(self.np.LayerSize, self.batch_size, self.np.HiddenSize)), 
+        self.hidden = (Variable(torch.zeros(self.np.LayerSize, self.batch_size, self.np.HiddenSize)), 
                 Variable(torch.zeros(self.np.LayerSize, self.batch_size, self.np.HiddenSize)))
 
     def forward(self, l):
@@ -85,4 +85,8 @@ class YOTMLLP(YOTM):
         c_out = c_x + c_l
         c_out = self.fc(c_out)
         return c_out
+    
+    def init_hidden(self):
+        self.locnet.init_hidden()
+        self.yimgnet.init_hidden()
     
