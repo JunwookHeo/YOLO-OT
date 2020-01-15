@@ -24,6 +24,7 @@ class Test(YOT_Base):
         ## Change configuration
         opt = self.update_config()
 
+        self.data_path = opt.data_path
         self.epochs = opt.epochs
         self.batch_size = opt.batch_size
         self.mode = opt.run_mode
@@ -32,9 +33,10 @@ class Test(YOT_Base):
     def update_config(self):
         parser = argparse.ArgumentParser()
         
+        parser.add_argument("--data_path", type=str, default="../rolo_data", help="path to data config file")
         parser.add_argument("--epochs", type=int, default=1, help="size of epoch")
         parser.add_argument("--batch_size", type=int, default=1, help="size of each image batch")
-        parser.add_argument("--run_mode", type=str, default="test", help="train or test mode")
+        parser.add_argument("--run_mode", type=str, default="none", help="train or test mode")
         parser.add_argument("--model_name", type=str, default="YOTMLLP", help="class name of the model")
         
         args, _ = parser.parse_known_args()
@@ -61,7 +63,8 @@ class Test(YOT_Base):
             iou = coord_utils.bbox_iou(torch.stack(predict_boxes, dim=0),  targets, False)
             yiou = coord_utils.bbox_iou(yolo_predicts.float(),  targets, False)
             LOG.debug(f"\t{lpos}-{dpos} IOU : {iou} - {yiou}")
-            self.Total_Iou += float(torch.sum(iou))
+            self.Total_Iou[0] += float(torch.sum(iou))
+            self.Total_Iou[1] += float(torch.sum(yiou))
             self.Total_cnt += len(iou) 
 
     def pre_proc(self):
@@ -76,11 +79,11 @@ class Test(YOT_Base):
         LOG.info(f'\n{self.model}')
 
     def initialize_processing(self, epoch):
-        self.Total_Iou = 0
+        self.Total_Iou = [0., 0.]
         self.Total_cnt = 0
 
     def finalize_processing(self, epoch):
-        LOG.info("Avg IOU : {:f}".format(self.Total_Iou/self.Total_cnt))
+        LOG.info("Avg IOU : YOT={:f}, YOLO={:f}".format(self.Total_Iou[0]/self.Total_cnt, self.Total_Iou[1]/self.Total_cnt))
 
     def display_frame(self, fs, ys, ps, ts):
         def draw_rectangle(img, p, c, l):            

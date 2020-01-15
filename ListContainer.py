@@ -69,6 +69,11 @@ class ListContainer:
         self.labels = []
         self.lists = []
         for path in paths:
+            if os.path.exists(os.path.join(os.path.dirname(path),'yot_out')):
+                self.labels.append(os.path.join(os.path.dirname(path),"groundtruth_rect.txt"))
+                self.lists.append(os.path.dirname(path))
+                break
+            
             if os.path.exists(os.path.join(path,'yot_out')):
                 self.labels.append(os.path.join(path,"groundtruth_rect.txt"))
                 self.lists.append(path)

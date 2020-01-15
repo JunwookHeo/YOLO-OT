@@ -32,6 +32,7 @@ class Train(YOT_Base):
         ## Change configuration
         opt = self.update_config()
 
+        self.data_path = opt.data_path
         self.epochs = opt.epochs
         self.save_weights = opt.save_weights
         self.mode = opt.run_mode
@@ -40,6 +41,7 @@ class Train(YOT_Base):
     def update_config(self):
         parser = argparse.ArgumentParser()
         
+        parser.add_argument("--data_path", type=str, default="../rolo_data", help="path to data config file")
         parser.add_argument("--epochs", type=int, default=30, help="size of epoch")
         parser.add_argument("--save_weights", type=bool, default=True, help="save checkpoint and weights")
         parser.add_argument("--run_mode", type=str, default="train", help="train or test mode")

@@ -12,7 +12,7 @@ class YOT_Base(ABC):
 
         opt = self.parse_default_config()
 
-        self.data_path = opt.data_config
+        self.data_path = opt.data_path
         self.batch_size = opt.batch_size
         self.seq_len = opt.sequence_length
         self.img_size = opt.img_size
@@ -28,7 +28,7 @@ class YOT_Base(ABC):
         parser = argparse.ArgumentParser()
 
         # default argument
-        parser.add_argument("--data_config", type=str, default="../rolo_data", help="path to data config file")
+        parser.add_argument("--data_path", type=str, default="../rolo_data", help="path to data config file")
     
         parser.add_argument("--epochs", type=int, default=30, help="size of epoch")
         parser.add_argument("--batch_size", type=int, default=16, help="size of each image batch")

@@ -43,10 +43,20 @@ class YOTM(nn.Module):
             model.load_state_dict(torch.load(file), strict=False)
 
     def get_targets(self, targets):
+        ''' 
+        convert (x1, y1, w, h) into (cx, cy, w, h)
+        ''' 
+        targets[..., 0] = targets[..., 0] + targets[..., 2]/2
+        targets[..., 1] = targets[..., 1] + targets[..., 3]/2
         return targets
     
-    def get_location(self, pm):
-        return pm
+    def get_location(self, predict):
+        '''
+        convert (cx, cy, w, h) into (x1, y1, w, h)
+        '''
+        predict[0] = predict[0] - predict[2]/2
+        predict[1] = predict[1] - predict[3]/2
+        return predict
 
     def get_loss_function(self):
         return nn.MSELoss(reduction='sum')
