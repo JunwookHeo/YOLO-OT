@@ -15,47 +15,53 @@ class YimgNet(nn.Module):
         self.conv2 = nn.Conv2d(64, 32, kernel_size=3, stride=2, padding=1)
         self.conv3 = nn.Conv2d(32, 16, kernel_size=1)
         
-        self.lstm = nn.LSTM(input_size=self.np.OutCnnSize, hidden_size=self.np.HiddenSize, 
-                            num_layers=self.np.LayerSize, batch_first=True)
-        self.init_hidden()
+        self.fc = nn.Linear(self.np.LocSize, self.np.LocMapSize)
 
-    def init_hidden(self):
-        self.hidden = (Variable(torch.zeros(self.np.LayerSize, self.batch_size, self.np.HiddenSize)), 
-                Variable(torch.zeros(self.np.LayerSize, self.batch_size, self.np.HiddenSize)))
-
-    def forward(self, x):
+    def forward(self, x, l):
         batch_size, seq_size, C, H, W = x.size()
         x = x.view(batch_size*seq_size, C, H, W)
         x = torch.relu(self.conv1(x))
         x = torch.relu(self.conv2(x))
         x = torch.relu(self.conv3(x))
 
+        l = l.view(batch_size*seq_size, -1)
+        l = self.fc(l)
+
         x = x.view(batch_size, seq_size, -1)
-        c_out, _ = self.lstm(x, self.hidden)
+        l = l.view(batch_size, seq_size, -1)
+
+        c_out = torch.cat((x, l), 2)
         
         return c_out
 
 
-class LocNet(nn.Module):
+class LstmNet(nn.Module):
     def __init__(self, batch_size, seq_len, np):
-        super(LocNet, self).__init__()
+        super(LstmNet, self).__init__()
         self.batch_size = batch_size
         self.seq_len = seq_len
         self.np = np
         
-        self.lstm = nn.LSTM(input_size=self.np.LocSize, hidden_size=self.np.HiddenSize, 
+        self.lstm1 = nn.LSTM(input_size=self.np.InLstmSize, hidden_size=self.np.HiddenSize, 
+                            num_layers=self.np.LayerSize, batch_first=True)
+        self.lstm2 = nn.LSTM(input_size=self.np.HiddenSize, hidden_size=128, 
+                            num_layers=self.np.LayerSize, batch_first=True)
+        self.lstm3 = nn.LSTM(input_size=128, hidden_size=4, 
                             num_layers=self.np.LayerSize, batch_first=True)
         self.init_hidden()
         
     def init_hidden(self):
-        self.hidden = (Variable(torch.zeros(self.np.LayerSize, self.batch_size, self.np.HiddenSize)), 
+        self.hidden1 = (Variable(torch.zeros(self.np.LayerSize, self.batch_size, self.np.HiddenSize)), 
                 Variable(torch.zeros(self.np.LayerSize, self.batch_size, self.np.HiddenSize)))
+        self.hidden2 = (Variable(torch.zeros(self.np.LayerSize, self.batch_size, 128)), 
+                Variable(torch.zeros(self.np.LayerSize, self.batch_size, 128)))
+        self.hidden3 = (Variable(torch.zeros(self.np.LayerSize, self.batch_size, 4)), 
+                Variable(torch.zeros(self.np.LayerSize, self.batch_size, 4)))
 
-    def forward(self, l):
-        #batch_size, seq_size, N, W, H = x.size()
-        #x = x.view(batch_size, seq_size, -1)
-        
-        c_out, _ = self.lstm(l, self.hidden)
+    def forward(self, x):
+        x, _ = self.lstm1(x, self.hidden1)
+        x, _ = self.lstm2(x, self.hidden2)
+        c_out, _ = self.lstm3(x, self.hidden3)
         
         return c_out
 
@@ -66,8 +72,9 @@ class YOTMLLP(YOTM):
         OutfiSize = 16*13*13
         OutCnnSize = OutfiSize
         LocSize = 5
-        InLstmSize = OutCnnSize
-        HiddenSize = 1024 #4096
+        LocMapSize = 32*32
+        InLstmSize = OutCnnSize + LocMapSize
+        HiddenSize = 2048 #4096
         LayerSize = 1
         OutputSize = 4
         
@@ -76,17 +83,14 @@ class YOTMLLP(YOTM):
         self.np = self.NP()
 
         self.yimgnet = YimgNet(batch_size, seq_len, self.np)
-        self.locnet = LocNet(batch_size, seq_len, self.np)
-        self.fc = nn.Linear(self.np.HiddenSize, self.np.OutputSize)
-     
+        self.lstmnet = LstmNet(batch_size, seq_len, self.np)
+        
     def forward(self, x, l):
-        c_x = self.yimgnet(x)
-        c_l = self.locnet(l)
-        c_out = c_x + c_l
-        c_out = self.fc(c_out)
+        c_out = self.yimgnet(x, l)
+        c_out = self.lstmnet(c_out)
+        
         return c_out
     
     def init_hidden(self):
-        self.locnet.init_hidden()
-        self.yimgnet.init_hidden()
+        self.lstmnet.init_hidden()
     

@@ -12,6 +12,7 @@ class YimgNet(nn.Module):
         self.conv1 = nn.Conv2d(128, 64, kernel_size=3, stride=2, padding=1)
         self.conv2 = nn.Conv2d(64, 32, kernel_size=3, stride=2, padding=1)
         self.conv3 = nn.Conv2d(32, 16, kernel_size=1)
+        
         self.fc = nn.Linear(self.np.LocSize, self.np.LocMapSize)
 
     def forward(self, x, l):
@@ -41,12 +42,10 @@ class LstmNet(nn.Module):
                             num_layers=self.np.LayerSize, batch_first=True)
 
         # final fully connected layers
-        self.dense1 = nn.Linear(self.np.HiddenSize, 512)
-        self.dense2 = nn.Linear(512, 128)
-        self.dense3 = nn.Linear(128, 16)
+        self.dense = nn.Linear(self.np.HiddenSize, 128)
 
         # Output Layer
-        self.fc = nn.Linear(16, self.np.OutputSize)
+        self.fc = nn.Linear(128, self.np.OutputSize)
         self.init_hidden()
 
     def init_hidden(self):
@@ -54,10 +53,8 @@ class LstmNet(nn.Module):
                 Variable(torch.zeros(self.np.LayerSize, self.batch_size, self.np.HiddenSize)))
 
     def forward(self, x):
-        x, self.hidden = self.lstm(x, self.hidden)
-        x = torch.relu(self.dense1(x))
-        x = torch.relu(self.dense2(x))
-        x = torch.relu(self.dense3(x))
+        x, _= self.lstm(x, self.hidden)
+        x = torch.relu(self.dense(x))
         c_out = self.fc(x)
         return c_out
 

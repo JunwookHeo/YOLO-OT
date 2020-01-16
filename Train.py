@@ -68,7 +68,6 @@ class Train(YOT_Base):
         loss.backward() #(retain_graph=True)
         self.optimizer.step()
         self.optimizer.zero_grad()
-        self.model.init_hidden()
 
         self.sum_loss += float(loss.data)
         self.frame_cnt += len(predicts)
@@ -95,6 +94,7 @@ class Train(YOT_Base):
         m = importlib.import_module(self.model_name)
         mobj = getattr(m, self.model_name)
         self.model = mobj(self.batch_size, self.seq_len).to(self.device)
+        LOG.info(f'\n{self.model}')
 
         self.loss = self.model.get_loss_function()
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=0.00001)
@@ -156,7 +156,6 @@ class Train(YOT_Base):
                     
                     target_values = self.model.get_targets(norm_targets)
                     loss += self.loss(predicts, target_values)
-                    self.model.init_hidden()
 
                     predict_boxes = []
                     for i, (f, o, y) in enumerate(zip(img_frames, predicts, yolo_predicts)):
