@@ -51,6 +51,7 @@ class YOT_Base(ABC):
             self.initialize_processing(epoch)
             listContainer = ListContainer(self.data_path, self.batch_size, self.seq_len, self.img_size, self.mode)
             for lpos, dataLoader in enumerate(listContainer):
+                self.initialize_data_loop()
                 for dpos, (frames, fis, locs, labels) in enumerate(dataLoader):
                     fis = Variable(fis.to(self.device))
                     locs = Variable(locs.to(self.device))
@@ -73,7 +74,11 @@ class YOT_Base(ABC):
     @abstractmethod
     def post_proc(self):
         pass
-        
+    
+    @abstractmethod
+    def initialize_data_loop(self):
+        pass
+
     @abstractmethod
     def initialize_processing(self, epoch):
         pass

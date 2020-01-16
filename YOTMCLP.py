@@ -52,7 +52,7 @@ class LstmNet(nn.Module):
                 Variable(torch.zeros(self.np.LayerSize, self.batch_size, self.np.HiddenSize)))
 
     def forward(self, x):
-        c_out, _ = self.lstm(x, self.hidden)
+        c_out, self.hidden = self.lstm(x, self.hidden)        
         c_out = self.fc(c_out)
 
         return c_out

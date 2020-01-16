@@ -78,6 +78,9 @@ class Test(YOT_Base):
     def post_proc(self):
         LOG.info(f'\n{self.model}')
 
+    def initialize_data_loop(self):
+        self.model.init_hidden()
+
     def initialize_processing(self, epoch):
         self.Total_Iou = [0., 0.]
         self.Total_cnt = 0
