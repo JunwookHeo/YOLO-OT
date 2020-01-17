@@ -75,7 +75,7 @@ class ListContainer:
                 break
             
             if os.path.exists(os.path.join(path,'yot_out')):
-#                if path.endswith('CarScale') or path.endswith('Singer1'):
+                #if path.endswith('MotorRolling') or path.endswith('Singer1'):
                     self.labels.append(os.path.join(path,"groundtruth_rect.txt"))
                     self.lists.append(path)
                     #break

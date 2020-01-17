@@ -2,6 +2,7 @@ import argparse
 import cv2
 import numpy as np
 import os
+import glob
 
 class CreateGT(object):
     class CGT:
@@ -14,9 +15,9 @@ class CreateGT(object):
 
     def parse_config(self):
         ap = argparse.ArgumentParser()
-        ap.add_argument("--mode", default="cgt_yolo", help="vtoi:video to image files, vyolo:view yolo gt, \
-                        cgt_yolo:create gt for yolo, cgt_yot:create gt for yot")
-        ap.add_argument("--image_path", default="../yot_data/images", help="Path to the image/video file or dir")
+        ap.add_argument("--mode", default="vrolo", help="vtoi:video to image files, vyolo:view yolo gt, \
+                        vrolo: view rolo rt, cgt_yolo:create gt for yolo, cgt_yot:create gt for yot")
+        ap.add_argument("--image_path", default="../rolo_data_2/Walking", help="Path to the image/video file or dir")
         args, _ = ap.parse_known_args()
         return args
     
@@ -48,7 +49,7 @@ class CreateGT(object):
             else:
                 break;        
     
-    def draw_rect(self, img, path):
+    def draw_yolo_rect(self, img, path):
         label_path = path.replace(".png", ".txt").replace(".jpg", ".txt")
         if os.path.exists(label_path):
             labels = np.loadtxt(label_path).reshape(-1, 5)
@@ -68,14 +69,13 @@ class CreateGT(object):
         isRun = True
         while(isRun):
             f = os.path.join(path, files[pos])
-            self.check_yolo_image_file(f)
             cap = cv2.VideoCapture(f) 
             assert cap.isOpened(), 'Cannot open source'
             while cap.isOpened():
                 ret, frame = cap.read()
                 if ret:
                     cv2.imshow(f, frame)
-                    self.draw_rect(frame, f)
+                    self.draw_yolo_rect(frame, f)
                     key = cv2.waitKey() & 0xFF
 
                     if key == ord('q'):
@@ -90,6 +90,57 @@ class CreateGT(object):
                     
             cv2.destroyAllWindows()
             print(f)
+
+        pass
+
+    def draw_rolo_rect(self, img, img_path, lbl_path):
+        if os.path.exists(lbl_path):
+            try:
+                labels = np.loadtxt(lbl_path, delimiter='\t', dtype=float).reshape(-1, 4)
+            except:
+                labels = np.loadtxt(lbl_path, delimiter=',', dtype=float).reshape(-1, 4)
+            for l in labels:
+                x1 = int(l[0])
+                y1 = int(l[1])
+                x2 = int(l[0] + l[2])
+                y2 = int(l[1] + l[3])
+                print(l)
+                cv2.rectangle(img, (x1, y1), (x2, y2), (0, 0, 255), 2)
+            cv2.imshow(img_path, img)
+    
+    def vrolo(self, path):
+        img_path = os.path.join(path, 'images')
+        lbl_path = os.path.join(path, 'labels')
+        img_files = sorted(glob.glob("%s/*.*" % img_path)) 
+        lbl_files = sorted(glob.glob("%s/*.*" % lbl_path))
+        
+        pos = 0
+        end = min(len(img_files), len(lbl_files))
+        isRun = True
+        while(isRun):
+            img_f = img_files[pos]
+            lbl_f = lbl_files[pos]
+            cap = cv2.VideoCapture(img_f) 
+            assert cap.isOpened(), 'Cannot open source'
+            while cap.isOpened():
+                ret, frame = cap.read()
+                if ret:
+                    cv2.imshow(img_f, frame)
+                    self.draw_rolo_rect(frame, img_f, lbl_f)
+                    key = cv2.waitKey() & 0xFF
+
+                    if key == ord('q'):
+                        isRun = False
+                        break
+                    elif key == ord('n'):
+                        pos = min(pos + 1, end - 1)
+                    elif key == ord('p'):
+                        pos = max(pos - 1, 0)                        
+                else:
+                    break
+                    
+            cv2.destroyAllWindows()
+            print(img_f, lbl_f)
 
         pass
 
@@ -146,6 +197,8 @@ class CreateGT(object):
             self.vtoi(self.image_path)
         elif self.mode is 'vyolo':
             self.vyolo(self.image_path)
+        elif self.mode is 'vrolo':
+            self.vrolo(self.image_path)
         elif self.mode is 'cgt_yot' or self.mode is 'cgt_yolo':
             self.cgt(self.image_path)
         else:
