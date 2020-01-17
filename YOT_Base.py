@@ -48,44 +48,49 @@ class YOT_Base(ABC):
         self.pre_proc()
 
         for epoch in range(self.epochs):            
-            self.initialize_processing(epoch)
+            self.initialize_epoch_processing(epoch)
             listContainer = ListContainer(self.data_path, self.batch_size, self.seq_len, self.img_size, self.mode)
             for lpos, dataLoader in enumerate(listContainer):
-                self.initialize_data_loop()
+                path = listContainer.get_list_info(lpos)
+                self.initialize_list_loop(path)
                 for dpos, (frames, fis, locs, labels) in enumerate(dataLoader):
                     fis = Variable(fis.to(self.device))
                     locs = Variable(locs.to(self.device))
                     labels = Variable(labels.to(self.device), requires_grad=False)
 
                     self.processing(epoch, lpos, dpos, frames, fis, locs, labels)
-
-            self.finalize_processing(epoch)
+                self.finalize_list_loop()
+            self.finalize_epoch_processing(epoch)
         
         self.post_proc()
 
     @abstractmethod
     def pre_proc(self):
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     def processing(self, epoch, lpos, dpos, frames, fis, locs, labels):
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     def post_proc(self):
-        pass
+        raise NotImplementedError
     
     @abstractmethod
-    def initialize_data_loop(self):
-        pass
+    def initialize_list_loop(self, name):
+        raise NotImplementedError
 
     @abstractmethod
-    def initialize_processing(self, epoch):
-        pass
+    def finalize_list_loop(self):
+        raise NotImplementedError
 
     @abstractmethod
-    def finalize_processing(self, epoch):
-        pass
+    def initialize_epoch_processing(self, epoch):
+        raise NotImplementedError
+
+    @abstractmethod
+    def finalize_epoch_processing(self, epoch):
+        raise NotImplementedError
     
     def get_last_sequence(self, data):
         d = torch.split(data, self.seq_len -1, dim=1)

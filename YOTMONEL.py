@@ -12,7 +12,7 @@ class OneLNet(nn.Module):
         self.np = np
 
         self.lstm = nn.LSTM(input_size=self.np.LocSize, hidden_size=self.np.HiddenSize, 
-                            num_layers=self.np.LayerSize, batch_first=True)
+                            num_layers=self.np.LayerSize, dropout=0.3, batch_first=True)
         self.init_hidden()
 
         self.fc = nn.Linear(self.np.HiddenSize, self.np.OutputSize)
@@ -34,7 +34,7 @@ class YOTMONEL(YOTM):
     class NP:
         LocSize = 5
         LocMapSize = 32*32
-        HiddenSize = 512 #4096
+        HiddenSize = 32 #4096
         LayerSize = 1
         OutputSize = 4
         
@@ -57,5 +57,5 @@ class YOTMONEL(YOTM):
         return out
     
     def init_hidden(self):
-        self.lstmnet.init_hidden()
+        self.lstmlnet.init_hidden()
     

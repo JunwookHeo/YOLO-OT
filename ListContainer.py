@@ -82,6 +82,9 @@ class ListContainer:
 
         self.loader = RoloLoader
 
+    def get_list_info(self, pos):
+        name = os.path.dirname(self.labels[pos])
+        return os.path.split(name)[-1]
 
     
     

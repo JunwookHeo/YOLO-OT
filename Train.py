@@ -82,7 +82,7 @@ class Train(YOT_Base):
                 predict_boxes.append(coord_utils.normal_to_location(f.shape[0], f.shape[1], p))
                 yolo_boxes.append(coord_utils.normal_to_location(f.shape[0], f.shape[1], y))
                 target_boxes.append(coord_utils.normal_to_location(f.shape[0], f.shape[1], t))
-                LOG.debug(f"\t{p.data} {t.data}")
+                LOG.debug(f"\tPredict:{p.int().data.numpy()},    YOLO:{y[0:4].int().data.numpy()},    GT:{t.int().data.numpy()}")
             iou = coord_utils.bbox_iou(torch.stack(predict_boxes, dim=0),  torch.stack(target_boxes, dim=0), False)
             yiou = coord_utils.bbox_iou(torch.stack(yolo_boxes, dim=0),  torch.stack(target_boxes, dim=0), False)
             self.sum_iou[0] += float(torch.sum(iou))
@@ -97,7 +97,7 @@ class Train(YOT_Base):
         LOG.info(f'\n{self.model}')
 
         self.loss = self.model.get_loss_function()
-        self.optimizer = torch.optim.Adam(self.model.parameters(), lr=0.00001)
+        self.optimizer = torch.optim.Adam(self.model.parameters(), lr=0.001)
         self.model.load_checkpoint(self.model, self.optimizer, self.weights_path)
         self.model.train()  # Set in training mode
         
@@ -106,16 +106,19 @@ class Train(YOT_Base):
         if self.save_weights is True:
             self.model.save_weights(self.model, self.weights_path)
 
-    def initialize_data_loop(self):
+    def initialize_list_loop(self, name):
         #self.model.init_hidden()
+        self.list_name = name
+
+    def finalize_list_loop(self, name):
         pass
 
-    def initialize_processing(self, epoch):
+    def initialize_epoch_processing(self, epoch):
         self.sum_loss = 0
         self.sum_iou = [0, 0]
         self.frame_cnt = 0
 
-    def finalize_processing(self, epoch):
+    def finalize_epoch_processing(self, epoch):
         avg_loss = self.sum_loss/self.frame_cnt
         train_iou = [self.sum_iou[0]/self.frame_cnt, self.sum_iou[1]/self.frame_cnt]
         validate_loss, validate_iou = self.evaluation()        
