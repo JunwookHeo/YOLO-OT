@@ -97,7 +97,7 @@ class Train(YOT_Base):
         LOG.info(f'\n{self.model}')
 
         self.loss = self.model.get_loss_function()
-        self.optimizer = torch.optim.Adam(self.model.parameters(), lr=0.001)
+        self.optimizer = torch.optim.Adam(self.model.parameters(), lr=0.0001)
         self.model.load_checkpoint(self.model, self.optimizer, self.weights_path)
         self.model.train()  # Set in training mode
         
@@ -110,7 +110,7 @@ class Train(YOT_Base):
         #self.model.init_hidden()
         self.list_name = name
 
-    def finalize_list_loop(self, name):
+    def finalize_list_loop(self):
         pass
 
     def initialize_epoch_processing(self, epoch):
