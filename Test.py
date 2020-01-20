@@ -23,6 +23,7 @@ class Test(YOT_Base):
     def __init__(self,argvs = []):
         super(Test, self).__init__(argvs)
         
+        self.save_coord_list = False
         ## Change configuration
         opt = self.update_config()
 
@@ -86,14 +87,16 @@ class Test(YOT_Base):
     def initialize_list_loop(self, name):
         #self.model.init_hidden()
         self.list_name = name
-        self.list_log = np.empty((0, 3, 4), int)
+        if self.save_coord_list:
+            self.list_log = np.empty((0, 3, 4), int)
 
     def finalize_list_loop(self):
-        path = os.path.join('./outputs', 'coord_' + self.strtime)
-        if not os.path.exists(path):
-            os.makedirs(path)
-        name = os.path.join(path, self.list_name)
-        np.save(name, self.list_log)
+        if self.save_coord_list:
+            path = os.path.join('./outputs', 'coord_' + self.strtime)
+            if not os.path.exists(path):
+                os.makedirs(path)
+            name = os.path.join(path, self.list_name)
+            np.save(name, self.list_log)
 
     def initialize_epoch_processing(self, epoch):
         self.Total_Iou = [0., 0.]
@@ -121,8 +124,9 @@ class Test(YOT_Base):
             cv2.waitKey(1)
         
     def append_coord_log(self, ps, ys, ts):
-        for p, y, t in zip(ps, ys[..., 0:4], ts):
-            self.list_log = np.append(self.list_log, np.array([[p.numpy(), y.numpy(), t.numpy()]]), axis=0)
+        if self.save_coord_list:
+            for p, y, t in zip(ps, ys[..., 0:4], ts):
+                self.list_log = np.append(self.list_log, np.array([[p.numpy(), y.numpy(), t.numpy()]]), axis=0)
 
 def main(argvs):
     test = Test(argvs)
