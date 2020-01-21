@@ -40,9 +40,10 @@ def main(argvs):
 
     path = filedialog.askdirectory()
     print(path)
-    files = glob.glob("%s/*.npy" % path)
-    for f in files:
-        parse_coord(f)
+    if path:
+        files = glob.glob("%s/*.npy" % path)
+        for f in files:
+            parse_coord(f)
 
 if __name__=='__main__':
     main('')

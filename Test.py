@@ -32,6 +32,7 @@ class Test(YOT_Base):
         self.batch_size = opt.batch_size
         self.mode = opt.run_mode
         self.model_name = opt.model_name
+        self.keep_hidden = opt.keep_hidden
 
     def update_config(self):
         parser = argparse.ArgumentParser()
@@ -41,6 +42,7 @@ class Test(YOT_Base):
         parser.add_argument("--batch_size", type=int, default=1, help="size of each image batch")
         parser.add_argument("--run_mode", type=str, default="test", help="train or test mode")
         parser.add_argument("--model_name", type=str, default="YOTMLLP", help="class name of the model")
+        parser.add_argument("--keep_hidden", type=bool, default=False, help="Keep the hidden state of LSTM for a video")
         
         args, _ = parser.parse_known_args()
         return args
@@ -54,6 +56,9 @@ class Test(YOT_Base):
             predicts = self.get_last_sequence(outputs)                
             yolo_predicts = self.get_last_sequence(locs)
             targets = self.get_last_sequence(labels)
+
+            if self.keep_hidden == False:
+                self.model.init_hidden()
 
             predict_boxes = []
             for i, (f, o, y, l) in enumerate(zip(img_frames, predicts, yolo_predicts, targets)):
@@ -85,14 +90,15 @@ class Test(YOT_Base):
         LOG.info(f'\n{self.model}')
 
     def initialize_list_loop(self, name):
-        #self.model.init_hidden()
+        if self.keep_hidden == True:
+            self.model.init_hidden()
         self.list_name = name
         if self.save_coord_list:
             self.list_log = np.empty((0, 3, 4), int)
 
     def finalize_list_loop(self):
         if self.save_coord_list:
-            path = os.path.join('./outputs', 'coord_' + self.strtime)
+            path = os.path.join('./outputs', 'coord_' + self.model_name + '_' + self.strtime)
             if not os.path.exists(path):
                 os.makedirs(path)
             name = os.path.join(path, self.list_name)

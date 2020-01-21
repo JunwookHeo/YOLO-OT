@@ -24,7 +24,7 @@ class OneLNet(nn.Module):
     def forward(self, x, l):
         batch_size, seq_size, N = l.size()
         l = l.view(batch_size, seq_size, -1)
-        c_out, _ = self.lstm(l, self.hidden)
+        c_out, self.hidden = self.lstm(l, self.hidden)
             
         c_out = self.fc(c_out)
         return c_out
@@ -47,13 +47,6 @@ class YOTMONEL(YOTM):
     def forward(self, x, l):
         batch_size, seq_size, _ = l.size()        
         out = self.lstmlnet(x, l)
-        '''
-        out = out.view(batch_size * seq_size, -1)
-        l = l.view(l.size(0) * l.size(1), -1)
-        t = torch.split(l, 4, dim=1)
-        out = t[0]*t[1] + out*(1-t[1])
-        out = out.view(batch_size, seq_size, -1)
-        '''
         return out
     
     def init_hidden(self):

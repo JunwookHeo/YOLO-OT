@@ -49,15 +49,15 @@ class MlpLNet(nn.Module):
         h_out = l[:,:,3].view(batch_size, seq_size, -1)
         p_out = l[:,:,4].view(batch_size, seq_size, -1)
 
-        x_out, _ = self.lstmx(torch.cat((x_out, p_out), 2), self.hiddenx)
-        y_out, _ = self.lstmy(torch.cat((y_out, p_out), 2), self.hiddeny)
-        w_out, _ = self.lstmw(torch.cat((w_out, p_out), 2), self.hiddenw)
-        h_out, _ = self.lstmh(torch.cat((h_out, p_out), 2), self.hiddenh)
+        x_out, self.hiddenx = self.lstmx(torch.cat((x_out, p_out), 2), self.hiddenx)
+        y_out, self.hiddeny = self.lstmy(torch.cat((y_out, p_out), 2), self.hiddeny)
+        w_out, self.hiddenw = self.lstmw(torch.cat((w_out, p_out), 2), self.hiddenw)
+        h_out, self.hiddenh = self.lstmh(torch.cat((h_out, p_out), 2), self.hiddenh)
         
-        x_out = self.fcx(x_out)
-        y_out = self.fcy(y_out)
-        w_out = self.fcw(w_out)
-        h_out = self.fch(h_out)
+        x_out = torch.sigmoid(self.fcx(x_out))
+        y_out = torch.sigmoid(self.fcy(y_out))
+        w_out = torch.sigmoid(self.fcw(w_out))
+        h_out = torch.sigmoid(self.fch(h_out))
 
         c_out = torch.cat((x_out, y_out, w_out, h_out), 2)
         

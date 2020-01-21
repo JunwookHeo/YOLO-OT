@@ -23,6 +23,7 @@ class YOT_Base(ABC):
 
         self.mode = opt.run_mode
         self.model_name = opt.model_name
+        self.keep_hidden = opt.keep_hidden
 
     def parse_default_config(self):
         parser = argparse.ArgumentParser()
@@ -40,6 +41,7 @@ class YOT_Base(ABC):
 
         parser.add_argument("--run_mode", type=str, default="none", help="train or test mode")        
         parser.add_argument("--model_name", type=str, default="YOTMLLP", help="class name of the model")
+        parser.add_argument("--keep_hidden", type=bool, default=False, help="Keep the hidden state of LSTM for a video")
 
         args, _ = parser.parse_known_args()
         return args

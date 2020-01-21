@@ -38,15 +38,17 @@ class Train(YOT_Base):
         self.save_weights = opt.save_weights
         self.mode = opt.run_mode
         self.model_name = opt.model_name
+        self.keep_hidden = opt.keep_hidden
 
     def update_config(self):
         parser = argparse.ArgumentParser()
         
         parser.add_argument("--data_path", type=str, default="../rolo_data", help="path to data config file")
-        parser.add_argument("--epochs", type=int, default=30, help="size of epoch")
+        parser.add_argument("--epochs", type=int, default=5, help="size of epoch")
         parser.add_argument("--save_weights", type=bool, default=True, help="save checkpoint and weights")
         parser.add_argument("--run_mode", type=str, default="train", help="train or test mode")
         parser.add_argument("--model_name", type=str, default="YOTMLLP", help="class name of the model")
+        parser.add_argument("--keep_hidden", type=bool, default=True, help="Keep the hidden state of LSTM for a video")
 
         args, _ = parser.parse_known_args()
         return args
@@ -65,7 +67,11 @@ class Train(YOT_Base):
         target_values = self.model.get_targets(targets.clone())
         loss = self.loss(predicts, target_values)
         
-        loss.backward() #(retain_graph=True)
+        if self.keep_hidden == True:
+            loss.backward(retain_graph=True)
+        else:
+            self.model.init_hidden()
+            loss.backward()
         self.optimizer.step()
         self.optimizer.zero_grad()
 
@@ -97,7 +103,7 @@ class Train(YOT_Base):
         LOG.info(f'\n{self.model}')
 
         self.loss = self.model.get_loss_function()
-        self.optimizer = torch.optim.Adam(self.model.parameters(), lr=0.0001)
+        self.optimizer = torch.optim.Adam(self.model.parameters(), lr=0.001)
         self.model.load_checkpoint(self.model, self.optimizer, self.weights_path)
         self.model.train()  # Set in training mode
         
@@ -107,7 +113,8 @@ class Train(YOT_Base):
             self.model.save_weights(self.model, self.weights_path)
 
     def initialize_list_loop(self, name):
-        #self.model.init_hidden()
+        if self.keep_hidden == True:
+            self.model.init_hidden()
         self.list_name = name
 
     def finalize_list_loop(self):
@@ -140,6 +147,8 @@ class Train(YOT_Base):
 
         eval_list = ListContainer(self.data_path, self.batch_size, self.seq_len, self.img_size, 'test')
         for dataLoader in eval_list:
+            if self.keep_hidden == True:
+                self.model.init_hidden()
             for frames, fis, locs, labels in dataLoader:
                 fis = Variable(fis.to(self.device))
                 locs = Variable(locs.to(self.device))
@@ -152,6 +161,8 @@ class Train(YOT_Base):
                     predicts = self.get_last_sequence(outputs)                
                     yolo_predicts = self.get_last_sequence(locs)
                     targets = self.get_last_sequence(labels)
+                    if self.keep_hidden == False:
+                        self.model.init_hidden()
 
                     norm_targets = targets.clone()
                     for i, (f, l) in enumerate(zip(img_frames, norm_targets)):
