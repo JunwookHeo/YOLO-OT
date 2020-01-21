@@ -54,10 +54,10 @@ class MlpLNet(nn.Module):
         w_out, self.hiddenw = self.lstmw(torch.cat((w_out, p_out), 2), self.hiddenw)
         h_out, self.hiddenh = self.lstmh(torch.cat((h_out, p_out), 2), self.hiddenh)
         
-        x_out = torch.sigmoid(self.fcx(x_out))
-        y_out = torch.sigmoid(self.fcy(y_out))
-        w_out = torch.sigmoid(self.fcw(w_out))
-        h_out = torch.sigmoid(self.fch(h_out))
+        x_out = self.fcx(x_out)
+        y_out = self.fcy(y_out)
+        w_out = self.fcw(w_out)
+        h_out = self.fch(h_out)
 
         c_out = torch.cat((x_out, y_out, w_out, h_out), 2)
         
@@ -84,5 +84,5 @@ class YOTMMLP(YOTM):
         return out
     
     def init_hidden(self):
-        self.lstmlnet.init_hidden()
+        self.mlplnet.init_hidden()
     

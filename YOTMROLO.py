@@ -14,10 +14,6 @@ class RoloNet(nn.Module):
         self.lstm = nn.LSTM(input_size=self.np.InLstmSize, hidden_size=self.np.HiddenSize, 
                             num_layers=self.np.LayerSize, batch_first=True)
 
-        self.fc = nn.Linear(self.np.HiddenSize, self.np.OutputSize)
-        
-        self.conv = nn.Conv2d(128, 1, kernel_size=1)
-
         self.init_hidden()
 
     def init_hidden(self):
@@ -26,19 +22,13 @@ class RoloNet(nn.Module):
 
     def forward(self, x, l):
         batch_size, seq_size, C, W, H= x.size()
-        #x = torch.mean(x, dim=2)
-        x = x.view(batch_size* seq_size, C, W, H)
-        x = torch.relu(self.conv(x))
-        x_out = x.view(batch_size, seq_size, -1)
+        
+        x = x.view(batch_size, seq_size, -1)
+        l = l.view(batch_size, seq_size, -1)
+        c_out = torch.cat((x, l), dim=2)
+        c_out, self.hidden = self.lstm(c_out, self.hidden)
 
-        l_out = l.view(batch_size, seq_size, -1)
-        c_out = torch.cat((x_out, l_out), dim=2)
-        c_out = c_out.view(batch_size, seq_size, -1)
-        c_out, _ = self.lstm(c_out, self.hidden)
-
-        c_out = self.fc(c_out)
-        c_out = c_out.view(batch_size, seq_size, -1)
-        return c_out
+        return c_out[:,:,self.np.OutCnnSize:]
 
 class YOTMROLO(YOTM):
     class NP:
@@ -48,7 +38,7 @@ class YOTMROLO(YOTM):
         LocSize = 5
         LocMapSize = 32*32
         InLstmSize = OutCnnSize + LocSize
-        HiddenSize = 16
+        HiddenSize = InLstmSize
         LayerSize = 1
         OutputSize = 4
         

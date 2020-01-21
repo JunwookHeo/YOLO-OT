@@ -32,7 +32,6 @@ class Test(YOT_Base):
         self.batch_size = opt.batch_size
         self.mode = opt.run_mode
         self.model_name = opt.model_name
-        self.keep_hidden = opt.keep_hidden
 
     def update_config(self):
         parser = argparse.ArgumentParser()
@@ -42,7 +41,6 @@ class Test(YOT_Base):
         parser.add_argument("--batch_size", type=int, default=1, help="size of each image batch")
         parser.add_argument("--run_mode", type=str, default="test", help="train or test mode")
         parser.add_argument("--model_name", type=str, default="YOTMLLP", help="class name of the model")
-        parser.add_argument("--keep_hidden", type=bool, default=False, help="Keep the hidden state of LSTM for a video")
         
         args, _ = parser.parse_known_args()
         return args

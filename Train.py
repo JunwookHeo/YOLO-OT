@@ -38,17 +38,15 @@ class Train(YOT_Base):
         self.save_weights = opt.save_weights
         self.mode = opt.run_mode
         self.model_name = opt.model_name
-        self.keep_hidden = opt.keep_hidden
 
     def update_config(self):
         parser = argparse.ArgumentParser()
         
         parser.add_argument("--data_path", type=str, default="../rolo_data", help="path to data config file")
-        parser.add_argument("--epochs", type=int, default=5, help="size of epoch")
+        parser.add_argument("--epochs", type=int, default=30, help="size of epoch")
         parser.add_argument("--save_weights", type=bool, default=True, help="save checkpoint and weights")
         parser.add_argument("--run_mode", type=str, default="train", help="train or test mode")
         parser.add_argument("--model_name", type=str, default="YOTMLLP", help="class name of the model")
-        parser.add_argument("--keep_hidden", type=bool, default=True, help="Keep the hidden state of LSTM for a video")
 
         args, _ = parser.parse_known_args()
         return args
