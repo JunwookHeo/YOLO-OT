@@ -101,7 +101,7 @@ class Train(YOT_Base):
         LOG.info(f'\n{self.model}')
 
         self.loss = self.model.get_loss_function()
-        self.optimizer = torch.optim.Adam(self.model.parameters(), lr=0.001)
+        self.optimizer = torch.optim.Adam(self.model.parameters(), lr=0.00001)
         self.model.load_checkpoint(self.model, self.optimizer, self.weights_path)
         self.model.train()  # Set in training mode
         
