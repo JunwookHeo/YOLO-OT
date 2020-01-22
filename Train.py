@@ -60,7 +60,7 @@ class Train(YOT_Base):
         targets = self.get_last_sequence(labels)
 
         for i, (f, l) in enumerate(zip(img_frames, targets)):
-            targets[i] = coord_utils.location_to_normal(f.shape[0], f.shape[1], l)
+            targets[i] = coord_utils.location_to_normal(f.shape[1], f.shape[0], l)
         
         target_values = self.model.get_targets(targets.clone())
         loss = self.loss(predicts, target_values)
@@ -83,9 +83,9 @@ class Train(YOT_Base):
             target_boxes = []        
             for i, (f, p, y, t) in enumerate(zip(img_frames, predicts, yolo_locs, targets)):
                 p = self.model.get_location(p)
-                predict_boxes.append(coord_utils.normal_to_location(f.shape[0], f.shape[1], p))
-                yolo_boxes.append(coord_utils.normal_to_location(f.shape[0], f.shape[1], y))
-                target_boxes.append(coord_utils.normal_to_location(f.shape[0], f.shape[1], t))
+                predict_boxes.append(coord_utils.normal_to_location(f.shape[1], f.shape[0], p))
+                yolo_boxes.append(coord_utils.normal_to_location(f.shape[1], f.shape[0], y))
+                target_boxes.append(coord_utils.normal_to_location(f.shape[1], f.shape[0], t))
                 LOG.debug(f"\tPredict:{p.int().data.numpy()},    YOLO:{y[0:4].int().data.numpy()},    GT:{t.int().data.numpy()}")
             iou = coord_utils.bbox_iou(torch.stack(predict_boxes, dim=0),  torch.stack(target_boxes, dim=0), False)
             yiou = coord_utils.bbox_iou(torch.stack(yolo_boxes, dim=0),  torch.stack(target_boxes, dim=0), False)
@@ -164,7 +164,7 @@ class Train(YOT_Base):
 
                     norm_targets = targets.clone()
                     for i, (f, l) in enumerate(zip(img_frames, norm_targets)):
-                        norm_targets[i] = coord_utils.location_to_normal(f.shape[0], f.shape[1], l)
+                        norm_targets[i] = coord_utils.location_to_normal(f.shape[1], f.shape[0], l)
                     
                     target_values = self.model.get_targets(norm_targets)
                     loss += self.loss(predicts, target_values)
@@ -172,8 +172,8 @@ class Train(YOT_Base):
                     predict_boxes = []
                     for i, (f, o, y) in enumerate(zip(img_frames, predicts, yolo_predicts)):
                         o = self.model.get_location(o)
-                        predict_boxes.append(coord_utils.normal_to_location(f.size(0), f.size(1), o.clamp(min=0)))
-                        yolo_predicts[i] = coord_utils.normal_to_location(f.size(0), f.size(1), y.clamp(min=0))
+                        predict_boxes.append(coord_utils.normal_to_location(f.size(1), f.size(0), o.clamp(min=0)))
+                        yolo_predicts[i] = coord_utils.normal_to_location(f.size(1), f.size(0), y.clamp(min=0))
                         
                     iou = coord_utils.bbox_iou(torch.stack(predict_boxes, dim=0),  targets, False)
                     yiou = coord_utils.bbox_iou(yolo_predicts.float(),  targets, False)

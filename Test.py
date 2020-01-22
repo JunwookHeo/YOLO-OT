@@ -61,8 +61,8 @@ class Test(YOT_Base):
             predict_boxes = []
             for i, (f, o, y, l) in enumerate(zip(img_frames, predicts, yolo_predicts, targets)):
                 o = self.model.get_location(o)
-                predict_boxes.append(coord_utils.normal_to_location(f.size(0), f.size(1), o.clamp(min=0)))
-                yolo_predicts[i] = coord_utils.normal_to_location(f.size(0), f.size(1), y.clamp(min=0))
+                predict_boxes.append(coord_utils.normal_to_location(f.size(1), f.size(0), o.clamp(min=0)))
+                yolo_predicts[i] = coord_utils.normal_to_location(f.size(1), f.size(0), y.clamp(min=0))
 
             self.display_frame(img_frames, torch.stack(predict_boxes, dim=0), yolo_predicts, targets)
             self.append_coord_log(torch.stack(predict_boxes, dim=0), yolo_predicts, targets)
