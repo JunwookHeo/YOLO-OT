@@ -51,10 +51,10 @@ class LstmNet(nn.Module):
         self.dense = nn.Linear(self.np.HiddenSize, 128)
         self.fc = nn.Linear(128, self.np.OutputSize)
 
-        self.init_hidden()
+        self.hidden = self.init_hidden()
 
     def init_hidden(self):
-        self.hidden = (Variable(torch.zeros(self.np.LayerSize, self.batch_size, self.np.HiddenSize)), 
+        return (Variable(torch.zeros(self.np.LayerSize, self.batch_size, self.np.HiddenSize)), 
                 Variable(torch.zeros(self.np.LayerSize, self.batch_size, self.np.HiddenSize)))
 
     def forward(self, x):
@@ -90,6 +90,3 @@ class YOTMCLP(YOTM):
 
         return c_out
 
-    def init_hidden(self):
-        self.lstmnet.init_hidden()
-        

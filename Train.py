@@ -64,12 +64,7 @@ class Train(YOT_Base):
         
         target_values = self.model.get_targets(targets.clone())
         loss = self.loss(predicts, target_values)
-        
-        if self.keep_hidden == True:
-            loss.backward(retain_graph=True)
-        else:
-            self.model.init_hidden()
-            loss.backward()
+        loss.backward()
         self.optimizer.step()
         self.optimizer.zero_grad()
 
@@ -111,8 +106,6 @@ class Train(YOT_Base):
             self.model.save_weights(self.model, self.weights_path)
 
     def initialize_list_loop(self, name):
-        if self.keep_hidden == True:
-            self.model.init_hidden()
         self.list_name = name
 
     def finalize_list_loop(self):
@@ -145,8 +138,6 @@ class Train(YOT_Base):
 
         eval_list = ListContainer(self.data_path, self.batch_size, self.seq_len, self.img_size, 'test')
         for dataLoader in eval_list:
-            if self.keep_hidden == True:
-                self.model.init_hidden()
             for frames, fis, locs, labels in dataLoader:
                 fis = Variable(fis.to(self.device))
                 locs = Variable(locs.to(self.device))
@@ -159,8 +150,6 @@ class Train(YOT_Base):
                     predicts = self.get_last_sequence(outputs)                
                     yolo_predicts = self.get_last_sequence(locs)
                     targets = self.get_last_sequence(labels)
-                    if self.keep_hidden == False:
-                        self.model.init_hidden()
 
                     norm_targets = targets.clone()
                     for i, (f, l) in enumerate(zip(img_frames, norm_targets)):

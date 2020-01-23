@@ -20,10 +20,10 @@ class YimgNet(nn.Module):
 
         self.lstm = nn.LSTM(input_size=self.np.OutCnnSize, hidden_size=self.np.HiddenSize, 
                             num_layers=self.np.LayerSize, batch_first=True)
-        self.init_hidden()
+        self.hidden = self.init_hidden()
 
     def init_hidden(self):
-        self.hidden = (Variable(torch.zeros(self.np.LayerSize, self.batch_size, self.np.HiddenSize)), 
+        return (Variable(torch.zeros(self.np.LayerSize, self.batch_size, self.np.HiddenSize)), 
                 Variable(torch.zeros(self.np.LayerSize, self.batch_size, self.np.HiddenSize)))
 
     def forward(self, x):
@@ -48,10 +48,10 @@ class LocNet(nn.Module):
         
         self.lstm = nn.LSTM(input_size=self.np.InLstmSize, hidden_size=self.np.HiddenSize, 
                             num_layers=self.np.LayerSize, batch_first=True)
-        self.init_hidden()
+        self.hidden = self.init_hidden()
         
     def init_hidden(self):
-        self.hidden = (Variable(torch.zeros(self.np.LayerSize, self.batch_size, self.np.HiddenSize)), 
+        return (Variable(torch.zeros(self.np.LayerSize, self.batch_size, self.np.HiddenSize)), 
                 Variable(torch.zeros(self.np.LayerSize, self.batch_size, self.np.HiddenSize)))
 
     def forward(self, x):
@@ -100,7 +100,4 @@ class YOTMLLP_PM(YOTM):
         return coord_utils.probability_map_to_location(self.np.LocMapSize, pm)
 
 
-    def init_hidden(self):
-        self.locnet.init_hidden()
-        self.yimgnet.init_hidden()
     

@@ -18,10 +18,10 @@ class RoloNet(nn.Module):
         self.lstm = nn.LSTM(input_size=self.np.InLstmSize, hidden_size=self.np.HiddenSize, 
                             num_layers=self.np.LayerSize, batch_first=True)
 
-        self.init_hidden()
+        self.hidden = self.init_hidden()
 
     def init_hidden(self):
-        self.hidden = (Variable(torch.zeros(self.np.LayerSize, self.batch_size, self.np.HiddenSize)), 
+        return (Variable(torch.zeros(self.np.LayerSize, self.batch_size, self.np.HiddenSize)), 
                 Variable(torch.zeros(self.np.LayerSize, self.batch_size, self.np.HiddenSize)))
 
     def forward(self, x, l):
@@ -35,7 +35,7 @@ class RoloNet(nn.Module):
         x = x.view(batch_size, seq_size, -1)
         l = l.view(batch_size, seq_size, -1)
         c_out = torch.cat((x, l), dim=2)
-        c_out, self.hidden = self.lstm(c_out, self.hidden)
+        c_out, _ = self.lstm(c_out, self.hidden)
 
         return c_out[:,:,self.np.OutCnnSize:-1]
 
@@ -65,6 +65,3 @@ class YOTMROLO(YOTM):
 
         return out
 
-    def init_hidden(self):
-        self.rolonet.init_hidden()
-    

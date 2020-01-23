@@ -26,9 +26,9 @@ class RoloDataset(Dataset):
         self.start_pos = 0
 
         if self.mode is 'train':    
-            self.num_frames = int(self.num_frames*0.7)
+            self.num_frames = int(self.num_frames*0.6)
         elif self.mode is 'test':
-            self.start_pos = int(self.num_frames*0.7)
+            self.start_pos = int(self.num_frames*0.6)
             self.num_frames = self.num_frames - self.start_pos
         
     def __len__(self):

@@ -13,18 +13,18 @@ class OneLNet(nn.Module):
 
         self.lstm = nn.LSTM(input_size=self.np.LocSize, hidden_size=self.np.HiddenSize, 
                             num_layers=self.np.LayerSize, dropout=0.3, batch_first=True)
-        self.init_hidden()
+        self.hidden = self.init_hidden()
 
         self.fc = nn.Linear(self.np.HiddenSize, self.np.OutputSize)
         
     def init_hidden(self):
-        self.hidden = (Variable(torch.zeros(self.np.LayerSize, self.batch_size, self.np.HiddenSize)), 
+        return (Variable(torch.zeros(self.np.LayerSize, self.batch_size, self.np.HiddenSize)), 
                 Variable(torch.zeros(self.np.LayerSize, self.batch_size, self.np.HiddenSize)))
 
     def forward(self, x, l):
         batch_size, seq_size, N = l.size()
         l = l.view(batch_size, seq_size, -1)
-        c_out, self.hidden = self.lstm(l, self.hidden)
+        c_out, _ = self.lstm(l, self.hidden)
             
         c_out = self.fc(c_out)
         return c_out
@@ -48,7 +48,4 @@ class YOTMONEL(YOTM):
         batch_size, seq_size, _ = l.size()        
         out = self.lstmlnet(x, l)
         return out
-    
-    def init_hidden(self):
-        self.lstmlnet.init_hidden()
     

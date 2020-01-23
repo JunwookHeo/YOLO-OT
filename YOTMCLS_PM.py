@@ -43,10 +43,10 @@ class LstmNet_PM(nn.Module):
 
         self.fc = nn.Linear(self.np.HiddenSize, self.np.OutputSize)
         
-        self.init_hidden()
+        self.hidden = self.init_hidden()
 
     def init_hidden(self):
-        self.hidden = (Variable(torch.zeros(self.np.LayerSize, self.batch_size, self.np.HiddenSize)), 
+        return (Variable(torch.zeros(self.np.LayerSize, self.batch_size, self.np.HiddenSize)), 
                 Variable(torch.zeros(self.np.LayerSize, self.batch_size, self.np.HiddenSize)))
 
     def forward(self, x):
@@ -85,7 +85,5 @@ class YOTMCLS_PM(YOTM):
     def get_location(self, pm):
         return coord_utils.probability_map_to_location(self.np.LocMapSize, pm)
 
-    def init_hidden(self):
-        self.lstmnet.init_hidden()
     
 

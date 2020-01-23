@@ -20,7 +20,7 @@ class MlpLNet(nn.Module):
         self.lstmh = nn.LSTM(input_size=2, hidden_size=self.np.HiddenSize, 
                             num_layers=self.np.LayerSize, dropout=0.3, batch_first=True)
         
-        self.init_hidden()
+        self.hiddenx, self.hiddeny, self.hiddenw, self.hiddenh = self.init_hidden()
 
         self.fcx = nn.Linear(self.np.HiddenSize, 1)
         self.fcy = nn.Linear(self.np.HiddenSize, 1)
@@ -29,15 +29,15 @@ class MlpLNet(nn.Module):
         
         
     def init_hidden(self):
-        self.hiddenx = (Variable(torch.zeros(self.np.LayerSize, self.batch_size, self.np.HiddenSize)), 
+        hiddenx = (Variable(torch.zeros(self.np.LayerSize, self.batch_size, self.np.HiddenSize)), 
                 Variable(torch.zeros(self.np.LayerSize, self.batch_size, self.np.HiddenSize)))
-        self.hiddeny = (Variable(torch.zeros(self.np.LayerSize, self.batch_size, self.np.HiddenSize)), 
+        hiddeny = (Variable(torch.zeros(self.np.LayerSize, self.batch_size, self.np.HiddenSize)), 
                 Variable(torch.zeros(self.np.LayerSize, self.batch_size, self.np.HiddenSize)))
-        self.hiddenw = (Variable(torch.zeros(self.np.LayerSize, self.batch_size, self.np.HiddenSize)), 
+        hiddenw = (Variable(torch.zeros(self.np.LayerSize, self.batch_size, self.np.HiddenSize)), 
                 Variable(torch.zeros(self.np.LayerSize, self.batch_size, self.np.HiddenSize)))
-        self.hiddenh = (Variable(torch.zeros(self.np.LayerSize, self.batch_size, self.np.HiddenSize)), 
+        hiddenh = (Variable(torch.zeros(self.np.LayerSize, self.batch_size, self.np.HiddenSize)), 
                 Variable(torch.zeros(self.np.LayerSize, self.batch_size, self.np.HiddenSize)))
-
+        return hiddenx, hiddeny, hiddenw, hiddenh
 
     def forward(self, x, l):
         batch_size, seq_size, N = l.size()
@@ -49,10 +49,10 @@ class MlpLNet(nn.Module):
         h_out = l[:,:,3].view(batch_size, seq_size, -1)
         p_out = l[:,:,4].view(batch_size, seq_size, -1)
 
-        x_out, self.hiddenx = self.lstmx(torch.cat((x_out, p_out), 2), self.hiddenx)
-        y_out, self.hiddeny = self.lstmy(torch.cat((y_out, p_out), 2), self.hiddeny)
-        w_out, self.hiddenw = self.lstmw(torch.cat((w_out, p_out), 2), self.hiddenw)
-        h_out, self.hiddenh = self.lstmh(torch.cat((h_out, p_out), 2), self.hiddenh)
+        x_out, _ = self.lstmx(torch.cat((x_out, p_out), 2), self.hiddenx)
+        y_out, _ = self.lstmy(torch.cat((y_out, p_out), 2), self.hiddeny)
+        w_out, _ = self.lstmw(torch.cat((w_out, p_out), 2), self.hiddenw)
+        h_out, _ = self.lstmh(torch.cat((h_out, p_out), 2), self.hiddenh)
         
         x_out = self.fcx(x_out)
         y_out = self.fcy(y_out)
@@ -82,7 +82,4 @@ class YOTMMLP(YOTM):
         batch_size, seq_size, _ = l.size()        
         out = self.mlplnet(x, l)
         return out
-    
-    def init_hidden(self):
-        self.mlplnet.init_hidden()
     

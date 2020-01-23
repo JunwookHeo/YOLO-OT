@@ -48,15 +48,16 @@ class LstmNet(nn.Module):
                             num_layers=self.np.LayerSize, batch_first=True)
         self.lstm3 = nn.LSTM(input_size=128, hidden_size=4, 
                             num_layers=self.np.LayerSize, batch_first=True)
-        self.init_hidden()
+        self.hidden1, self.hidden2, self.hidden3 = self.init_hidden()
         
     def init_hidden(self):
-        self.hidden1 = (Variable(torch.zeros(self.np.LayerSize, self.batch_size, self.np.HiddenSize)), 
+        hidden1 = (Variable(torch.zeros(self.np.LayerSize, self.batch_size, self.np.HiddenSize)), 
                 Variable(torch.zeros(self.np.LayerSize, self.batch_size, self.np.HiddenSize)))
-        self.hidden2 = (Variable(torch.zeros(self.np.LayerSize, self.batch_size, 128)), 
+        hidden2 = (Variable(torch.zeros(self.np.LayerSize, self.batch_size, 128)), 
                 Variable(torch.zeros(self.np.LayerSize, self.batch_size, 128)))
-        self.hidden3 = (Variable(torch.zeros(self.np.LayerSize, self.batch_size, 4)), 
+        hidden3 = (Variable(torch.zeros(self.np.LayerSize, self.batch_size, 4)), 
                 Variable(torch.zeros(self.np.LayerSize, self.batch_size, 4)))
+        return hidden1, hidden2, hidden3
 
     def forward(self, x):
         x, _ = self.lstm1(x, self.hidden1)
@@ -90,7 +91,4 @@ class YOTMLLP(YOTM):
         c_out = self.lstmnet(c_out)
         
         return c_out
-    
-    def init_hidden(self):
-        self.lstmnet.init_hidden()
     

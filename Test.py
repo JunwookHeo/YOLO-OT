@@ -55,9 +55,6 @@ class Test(YOT_Base):
             yolo_predicts = self.get_last_sequence(locs)
             targets = self.get_last_sequence(labels)
 
-            if self.keep_hidden == False:
-                self.model.init_hidden()
-
             predict_boxes = []
             for i, (f, o, y, l) in enumerate(zip(img_frames, predicts, yolo_predicts, targets)):
                 o = self.model.get_location(o)
@@ -88,8 +85,6 @@ class Test(YOT_Base):
         LOG.info(f'\n{self.model}')
 
     def initialize_list_loop(self, name):
-        if self.keep_hidden == True:
-            self.model.init_hidden()
         self.list_name = name
         if self.save_coord_list:
             self.list_log = np.empty((0, 3, 4), int)
