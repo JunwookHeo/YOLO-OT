@@ -4,7 +4,7 @@ from torch.autograd import Variable
 
 from coord_utils import *
 
-from YOTM import *
+from YOTMWPM import *
 
 
 class YimgNet(nn.Module):
@@ -66,7 +66,7 @@ class LocNet(nn.Module):
         return c_out
 
 
-class YOTMLLP_PM(YOTM):
+class YOTMLLP_PM(YOTMWPM):
     class NP:
         InfiSize = 128*52*52
         OutfiSize = 16*13*13

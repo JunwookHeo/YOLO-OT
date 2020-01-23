@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 from torch.autograd import Variable
 
-from YOTM import *
+from YOTMWOPM import *
 
 class RoloNet(nn.Module):
     def __init__(self, batch_size, seq_len, np):
@@ -39,7 +39,7 @@ class RoloNet(nn.Module):
 
         return c_out[:,:,self.np.OutCnnSize:-1]
 
-class YOTMROLO(YOTM):
+class YOTMROLO(YOTMWOPM):
     class NP:
         InfiSize = 128*52*52
         OutfiSize = 4*4

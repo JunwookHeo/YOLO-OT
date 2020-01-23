@@ -4,7 +4,7 @@ from torch.autograd import Variable
 
 from coord_utils import *
 
-from YOTM import *
+from YOTMWPM import *
 
 class YimgNet_PM(nn.Module):
     def __init__(self, np):
@@ -54,7 +54,7 @@ class LstmNet_PM(nn.Module):
         c_out = self.fc(c_out)
         return c_out
 
-class YOTMCLS_PM(YOTM):
+class YOTMCLS_PM(YOTMWPM):
     class NP:
         InfiSize = 128*52*52
         OutfiSize = 16*13*13

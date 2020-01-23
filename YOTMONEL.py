@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 from torch.autograd import Variable
 
-from YOTM import *
+from YOTMWOPM import *
 
 class OneLNet(nn.Module):
     def __init__(self, batch_size, seq_len, np):
@@ -30,7 +30,7 @@ class OneLNet(nn.Module):
         return c_out
 
 
-class YOTMONEL(YOTM):
+class YOTMONEL(YOTMWOPM):
     class NP:
         LocSize = 5
         LocMapSize = 32*32

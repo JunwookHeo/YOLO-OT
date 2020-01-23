@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 from torch.autograd import Variable
 
-from YOTM import *
+from YOTMWOPM import *
 
 class MlpLNet(nn.Module):
     def __init__(self, batch_size, seq_len, np):
@@ -64,7 +64,7 @@ class MlpLNet(nn.Module):
         return c_out
 
 
-class YOTMMLP(YOTM):
+class YOTMMLP(YOTMWOPM):
     class NP:
         LocSize = 5
         LocMapSize = 32*32

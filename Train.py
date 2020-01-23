@@ -64,6 +64,7 @@ class Train(YOT_Base):
         
         target_values = self.model.get_targets(targets.clone())
         loss = self.loss(predicts, target_values)
+        #loss = self.model.get_weighted_loss(predicts, target_values, torch.tensor([2,2,1,1], dtype=torch.float32))
         loss.backward()
         self.optimizer.step()
         self.optimizer.zero_grad()
@@ -144,7 +145,7 @@ class Train(YOT_Base):
                 labels = Variable(labels.to(self.device), requires_grad=False)
 
                 with torch.no_grad():            
-                    outputs = self.model(fis.float(), locs.float())
+                    outputs = self.model(fis, locs)
         
                     img_frames = self.get_last_sequence(frames)
                     predicts = self.get_last_sequence(outputs)                

@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 from torch.autograd import Variable
 
-from YOTM import *
+from YOTMWOPM import *
 
 class YimgNet(nn.Module):
     def __init__(self, batch_size, seq_len, np):
@@ -67,7 +67,7 @@ class LstmNet(nn.Module):
         return c_out
 
 
-class YOTMLLP(YOTM):
+class YOTMLLP(YOTMWOPM):
     class NP:
         InfiSize = 128*52*52
         OutfiSize = 16*13*13

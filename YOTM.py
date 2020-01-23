@@ -48,8 +48,9 @@ class YOTM(nn.Module):
     def get_location(self, predict):
         return predict
 
+    #abstractmethod
     def get_loss_function(self):
-        return nn.MSELoss(reduction='sum')
+        raise NotImplementedError
 
     def save_checkpoint(self, model, optimizer, path):
         self.__save_checkpoint(model, optimizer, path, self.__class__.__name__.lower() + '.pth')

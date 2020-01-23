@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 from torch.autograd import Variable
-from YOTM import YOTM
+from YOTMWOPM import *
 
 
 class YimgNet(nn.Module):
@@ -62,7 +62,7 @@ class LstmNet(nn.Module):
         return c_out
 
 
-class YOTMWP(YOTM):
+class YOTMWP(YOTMWOPM):
     class NP:
         InfiSize = 128*52*52
         OutfiSize = 16*13*13
