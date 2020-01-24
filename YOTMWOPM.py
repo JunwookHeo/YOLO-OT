@@ -11,9 +11,3 @@ class YOTMWOPM(YOTM):
     def get_loss_function(self):
         return nn.MSELoss(reduction='sum')
 
-    def get_weighted_loss(self, predicts, targets, weights):
-        loss = 0
-        for i, w in enumerate(weights):
-            loss += self.loss_fn(predicts[:,i]*w, targets[:, i]*w)
-        
-        return loss

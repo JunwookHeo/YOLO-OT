@@ -39,7 +39,7 @@ class Test(YOT_Base):
         parser.add_argument("--data_path", type=str, default="../rolo_data", help="path to data config file")
         parser.add_argument("--epochs", type=int, default=1, help="size of epoch")
         parser.add_argument("--batch_size", type=int, default=1, help="size of each image batch")
-        parser.add_argument("--run_mode", type=str, default="test", help="train or test mode")
+        parser.add_argument("--run_mode", type=str, default="test", help="train, validate or test mode")
         parser.add_argument("--model_name", type=str, default="YOTMLLP", help="class name of the model")
         
         args, _ = parser.parse_known_args()

@@ -38,6 +38,7 @@ class Train(YOT_Base):
         self.save_weights = opt.save_weights
         self.mode = opt.run_mode
         self.model_name = opt.model_name
+        self.lr = opt.learning_rate
 
     def update_config(self):
         parser = argparse.ArgumentParser()
@@ -45,8 +46,9 @@ class Train(YOT_Base):
         parser.add_argument("--data_path", type=str, default="../rolo_data", help="path to data config file")
         parser.add_argument("--epochs", type=int, default=30, help="size of epoch")
         parser.add_argument("--save_weights", type=bool, default=True, help="save checkpoint and weights")
-        parser.add_argument("--run_mode", type=str, default="train", help="train or test mode")
+        parser.add_argument("--run_mode", type=str, default="train", help="train, validate or test mode")
         parser.add_argument("--model_name", type=str, default="YOTMLLP", help="class name of the model")
+        parser.add_argument("--learning_rate", type=float, default=0.00001, help="Learning rate for networks")
 
         args, _ = parser.parse_known_args()
         return args
@@ -64,7 +66,6 @@ class Train(YOT_Base):
         
         target_values = self.model.get_targets(targets.clone())
         loss = self.loss(predicts, target_values)
-        #loss = self.model.get_weighted_loss(predicts, target_values, torch.tensor([2,2,1,1], dtype=torch.float32))
         loss.backward()
         self.optimizer.step()
         self.optimizer.zero_grad()
@@ -97,7 +98,7 @@ class Train(YOT_Base):
         LOG.info(f'\n{self.model}')
 
         self.loss = self.model.get_loss_function()
-        self.optimizer = torch.optim.Adam(self.model.parameters(), lr=0.00001)
+        self.optimizer = torch.optim.Adam(self.model.parameters(), lr=self.lr)
         self.model.load_checkpoint(self.model, self.optimizer, self.weights_path)
         self.model.train()  # Set in training mode
         
@@ -137,7 +138,7 @@ class Train(YOT_Base):
         loss = 0
         self.model.train(False)
 
-        eval_list = ListContainer(self.data_path, self.batch_size, self.seq_len, self.img_size, 'test')
+        eval_list = ListContainer(self.data_path, self.batch_size, self.seq_len, self.img_size, 'validate')
         for dataLoader in eval_list:
             for frames, fis, locs, labels in dataLoader:
                 fis = Variable(fis.to(self.device))

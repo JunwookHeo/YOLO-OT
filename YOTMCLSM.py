@@ -43,7 +43,11 @@ class LstmNet(nn.Module):
         self.lstm = nn.LSTM(input_size=self.np.InLstmSize, hidden_size=self.np.HiddenSize, 
                             num_layers=self.np.LayerSize, batch_first=True, dropout=0.3)
 
-        self.fc = nn.Linear(self.np.HiddenSize, self.np.OutputSize)
+        # final fully connected layers
+        self.dense = nn.Linear(self.np.HiddenSize, 128)
+
+        # Output Layer
+        self.fc = nn.Linear(128, self.np.OutputSize)
         
         self.hidden = self.init_hidden()
 
@@ -52,8 +56,9 @@ class LstmNet(nn.Module):
                 Variable(torch.zeros(self.np.LayerSize, self.batch_size, self.np.HiddenSize)))
 
     def forward(self, x):
-        c_out, _ = self.lstm(x, self.hidden)
-        c_out = self.fc(c_out)
+        x, _ = self.lstm(x, self.hidden)
+        x = torch.relu(self.dense(x))
+        c_out = self.fc(x)
 
         return c_out
 

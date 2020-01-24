@@ -38,7 +38,7 @@ class YOT_Base(ABC):
         parser.add_argument("--weights_path", type=str, default="outputs/weights", help="path to weights folder")
         parser.add_argument("--save_weights", type=bool, default=False, help="save checkpoint and weights")
 
-        parser.add_argument("--run_mode", type=str, default="none", help="train or test mode")        
+        parser.add_argument("--run_mode", type=str, default="none", help="train, validate or test mode")        
         parser.add_argument("--model_name", type=str, default="YOTMLLP", help="class name of the model")
 
         args, _ = parser.parse_known_args()
