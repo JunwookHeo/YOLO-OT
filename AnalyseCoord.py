@@ -7,6 +7,42 @@ from tkinter import filedialog, Tk
 
 import glob
 
+# import the necessary packages
+from collections import namedtuple
+import numpy as np
+import cv2
+
+# define the `Detection` object
+Detection = namedtuple("Detection", ["image_path", "gt", "pred"])
+
+def bb_iou(box1, box2):
+	# determine the (x, y)-coordinates of the intersection rectangle
+    b1_x1, b1_x2 = box1[0] - box1[2]/2, box1[0] + box1[2]/2
+    b1_y1, b1_y2 = box1[1] - box1[3]/2, box1[1] + box1[3]/2
+    b2_x1, b2_x2 = box2[0] - box2[2]/2, box2[0] + box2[2]/2
+    b2_y1, b2_y2 = box2[1] - box2[3]/2, box2[1] + box2[3]/2
+
+    ix1 = np.maximum(b1_x1, b2_x1)
+    iy1 = np.maximum(b1_y1, b2_y1)
+    ix2 = np.minimum(b1_x2, b2_x2)
+    iy2 = np.minimum(b1_y2, b2_y2)
+
+    # compute the area of intersection rectangle
+    interArea = np.maximum(0, ix2 - ix1 + 1) * np.maximum(0, iy2 - iy1 + 1)
+
+    # compute the area of both the prediction and ground-truth
+    # rectangles
+    box1Area = (b1_x2 - b1_x1 + 1) * (b1_y2 - b1_y1 + 1)
+    box2Area = (b2_x2 - b2_x1 + 1) * (b2_y2 - b2_y1 + 1)
+
+    # compute the intersection over union by taking the intersection
+    # area and dividing it by the sum of prediction + ground-truth
+    # areas - the interesection area
+    iou = interArea / (box1Area + box2Area - interArea + 1e-16)
+
+    # return the intersection over union value
+    return iou
+
 def parse_coord(path):
     try:
         coords = np.load(path)
@@ -27,6 +63,10 @@ def parse_coord(path):
         plt.plot(cyi)
         plt.plot(cti)
         axs.set_ylabel(titles[i])
+    
+    yiou = bb_iou(cy, ct)
+    piou = bb_iou(cp, ct)
+    print(f'{name} - Avg IOU : YOT={np.mean(piou)}, YOLO={np.mean(yiou)}')
     fig.legend(labels=['predict', 'yolo', 'ground th'], loc='right')
     fig.suptitle(name)
     plt.show()
@@ -47,3 +87,4 @@ def main(argvs):
 
 if __name__=='__main__':
     main('')
+    
