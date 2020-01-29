@@ -44,7 +44,7 @@ class Train(YOT_Base):
         parser = argparse.ArgumentParser()
         
         parser.add_argument("--data_path", type=str, default="../rolo_data", help="path to data config file")
-        parser.add_argument("--epochs", type=int, default=30, help="size of epoch")
+        parser.add_argument("--epochs", type=int, default=50, help="size of epoch")
         parser.add_argument("--save_weights", type=bool, default=True, help="save checkpoint and weights")
         parser.add_argument("--run_mode", type=str, default="train", help="train, validate or test mode")
         parser.add_argument("--model_name", type=str, default="YOTMLLP", help="class name of the model")
@@ -131,6 +131,7 @@ class Train(YOT_Base):
                                         self.result_columns[2]:train_iou[0], self.result_columns[3]:validate_iou[0], 
                                         self.result_columns[4]:train_iou[1], self.result_columns[5]:validate_iou[1]}, ignore_index=True)
         LOG.info(f'\n{self.Report}')
+        LOG.info(f'LR={self.lr}')
 
     def evaluation(self):
         total_iou = [0, 0]
