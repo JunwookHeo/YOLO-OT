@@ -36,8 +36,9 @@ class YimgNet(nn.Module):
 
 
 class LstmNet(nn.Module):
-    def __init__(self, batch_size, seq_len, np):
+    def __init__(self, device, batch_size, seq_len, np):
         super(LstmNet, self).__init__()
+        self.device = device
         self.batch_size = batch_size
         self.seq_len = seq_len
         self.np = np
@@ -51,12 +52,12 @@ class LstmNet(nn.Module):
         self.hidden1, self.hidden2, self.hidden3 = self.init_hidden()
         
     def init_hidden(self):
-        hidden1 = (Variable(torch.zeros(self.np.LayerSize, self.batch_size, self.np.HiddenSize)), 
-                Variable(torch.zeros(self.np.LayerSize, self.batch_size, self.np.HiddenSize)))
-        hidden2 = (Variable(torch.zeros(self.np.LayerSize, self.batch_size, 128)), 
-                Variable(torch.zeros(self.np.LayerSize, self.batch_size, 128)))
-        hidden3 = (Variable(torch.zeros(self.np.LayerSize, self.batch_size, 4)), 
-                Variable(torch.zeros(self.np.LayerSize, self.batch_size, 4)))
+        hidden1 = (Variable(torch.zeros(self.np.LayerSize, self.batch_size, self.np.HiddenSize).to(self.device)), 
+                Variable(torch.zeros(self.np.LayerSize, self.batch_size, self.np.HiddenSize).to(self.device)))
+        hidden2 = (Variable(torch.zeros(self.np.LayerSize, self.batch_size, 128).to(self.device)), 
+                Variable(torch.zeros(self.np.LayerSize, self.batch_size, 128).to(self.device)))
+        hidden3 = (Variable(torch.zeros(self.np.LayerSize, self.batch_size, 4).to(self.device)), 
+                Variable(torch.zeros(self.np.LayerSize, self.batch_size, 4).to(self.device)))
         return hidden1, hidden2, hidden3
 
     def forward(self, x):
@@ -84,7 +85,7 @@ class YOTMLLP(YOTMWOPM):
         self.np = self.NP()
 
         self.yimgnet = YimgNet(batch_size, seq_len, self.np)
-        self.lstmnet = LstmNet(batch_size, seq_len, self.np)
+        self.lstmnet = LstmNet(self.device, batch_size, seq_len, self.np)
         
     def forward(self, x, l):
         c_out = self.yimgnet(x, l)

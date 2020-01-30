@@ -32,8 +32,9 @@ class YimgNet_PM(nn.Module):
         return c_out
 
 class LstmNet_PM(nn.Module):
-    def __init__(self, batch_size, seq_len, np):
+    def __init__(self, device, batch_size, seq_len, np):
         super(LstmNet_PM, self).__init__()
+        self.device = device
         self.batch_size = batch_size
         self.seq_len = seq_len
         self.np = np
@@ -46,8 +47,8 @@ class LstmNet_PM(nn.Module):
         self.hidden = self.init_hidden()
 
     def init_hidden(self):
-        return (Variable(torch.zeros(self.np.LayerSize, self.batch_size, self.np.HiddenSize)), 
-                Variable(torch.zeros(self.np.LayerSize, self.batch_size, self.np.HiddenSize)))
+        return (Variable(torch.zeros(self.np.LayerSize, self.batch_size, self.np.HiddenSize).to(self.device)), 
+                Variable(torch.zeros(self.np.LayerSize, self.batch_size, self.np.HiddenSize).to(self.device)))
 
     def forward(self, x):
         c_out, _ = self.lstm(x, self.hidden)
@@ -71,7 +72,7 @@ class YOTMCLS_PM(YOTMWPM):
         self.np = self.NP()
 
         self.yimgnet = YimgNet_PM(self.np)
-        self.lstmnet = LstmNet_PM(batch_size, seq_len, self.np)
+        self.lstmnet = LstmNet_PM(self.device, batch_size, seq_len, self.np)
         
     def forward(self, x, l):
         out = self.yimgnet(x, l)

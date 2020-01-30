@@ -7,6 +7,8 @@ class YOTM(nn.Module):
     def __init__(self):
         super(YOTM, self).__init__()
 
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
     def forward(self, x, l):
         pass
         

@@ -5,8 +5,9 @@ from torch.autograd import Variable
 from YOTMWOPM import *
 
 class RoloNet(nn.Module):
-    def __init__(self, batch_size, seq_len, np):
+    def __init__(self, device, batch_size, seq_len, np):
         super(RoloNet, self).__init__()
+        self.device = device
         self.batch_size = batch_size
         self.seq_len = seq_len
         self.np = np
@@ -21,8 +22,8 @@ class RoloNet(nn.Module):
         self.hidden = self.init_hidden()
 
     def init_hidden(self):
-        return (Variable(torch.zeros(self.np.LayerSize, self.batch_size, self.np.HiddenSize)), 
-                Variable(torch.zeros(self.np.LayerSize, self.batch_size, self.np.HiddenSize)))
+        return (Variable(torch.zeros(self.np.LayerSize, self.batch_size, self.np.HiddenSize).to(self.device)), 
+                Variable(torch.zeros(self.np.LayerSize, self.batch_size, self.np.HiddenSize).to(self.device)))
 
     def forward(self, x, l):
         batch_size, seq_size, C, W, H= x.size()
@@ -54,7 +55,7 @@ class YOTMROLO(YOTMWOPM):
     def __init__(self, batch_size, seq_len):
         super(YOTMROLO, self).__init__()
         self.np = self.NP()
-        self.rolonet = RoloNet(batch_size, seq_len, self.np)
+        self.rolonet = RoloNet(self.device, batch_size, seq_len, self.np)
 
     def forward(self, x, l):
         out = self.rolonet(x, l)

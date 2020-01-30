@@ -2,8 +2,9 @@
 
 from abc import ABC, abstractmethod
 from torch.autograd import Variable
-from ListContainer import *
+from ListContainer import ListContainer
 
+import torch
 import argparse
 
 class YOT_Base(ABC):

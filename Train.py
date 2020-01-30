@@ -27,7 +27,7 @@ class Train(YOT_Base):
         super(Train, self).__init__(argvs)
         
         self.log_interval = 1
-        self.result_columns=['Train_Loss', 'Validate_Loss', 'Train_YOT_IoU', 'Validate_YOT_IoU', 'Train_YOLO_IoU', 'Validate_YOLO_IoU']
+        self.result_columns=['Train_Loss', 'Validate_Loss', 'Train_YOT_IoU', 'Validate_YOT_IoU']
         self.Report = pd.DataFrame(columns=self.result_columns)
 
         ## Change configuration
@@ -83,7 +83,7 @@ class Train(YOT_Base):
                 predict_boxes.append(coord_utils.normal_to_location(f.shape[1], f.shape[0], p))
                 yolo_boxes.append(coord_utils.normal_to_location(f.shape[1], f.shape[0], y))
                 target_boxes.append(coord_utils.normal_to_location(f.shape[1], f.shape[0], t))
-                LOG.debug(f"\tPredict:{p.int().data.numpy()},    YOLO:{y[0:4].int().data.numpy()},    GT:{t.int().data.numpy()}")
+                LOG.debug(f"\tPredict:{p.cpu().int().data.numpy()},    YOLO:{y[0:4].cpu().int().data.numpy()},    GT:{t.cpu().int().data.numpy()}")
             iou = coord_utils.bbox_iou(torch.stack(predict_boxes, dim=0),  torch.stack(target_boxes, dim=0), False)
             yiou = coord_utils.bbox_iou(torch.stack(yolo_boxes, dim=0),  torch.stack(target_boxes, dim=0), False)
             self.sum_iou[0] += float(torch.sum(iou))
@@ -128,9 +128,14 @@ class Train(YOT_Base):
             self.model.save_checkpoint(self.model, self.optimizer, self.weights_path)
 
         self.Report = self.Report.append({self.result_columns[0]:avg_loss, self.result_columns[1]:validate_loss, 
-                                        self.result_columns[2]:train_iou[0], self.result_columns[3]:validate_iou[0], 
-                                        self.result_columns[4]:train_iou[1], self.result_columns[5]:validate_iou[1]}, ignore_index=True)
-        LOG.info(f'\n{self.Report}')
+                                        self.result_columns[2]:train_iou[0], self.result_columns[3]:validate_iou[0]}, ignore_index=True)
+        
+        LOG.info(f'Train_YOLO_IoU : {train_iou[1]}')
+        LOG.info(f'Validate_YOLO_IoU : {validate_iou[1]}')
+
+        with pd.option_context('display.max_rows', None, 'display.max_columns', None):
+            LOG.info(f'\n{self.Report}')
+        
         LOG.info(f'LR={self.lr}')
 
     def evaluation(self):

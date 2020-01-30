@@ -5,8 +5,9 @@ from torch.autograd import Variable
 from YOTMWOPM import *
 
 class MlpLNet(nn.Module):
-    def __init__(self, batch_size, seq_len, np):
+    def __init__(self, device, batch_size, seq_len, np):
         super(MlpLNet, self).__init__()
+        self.device = device
         self.batch_size = batch_size
         self.seq_len = seq_len
         self.np = np
@@ -29,14 +30,14 @@ class MlpLNet(nn.Module):
         
         
     def init_hidden(self):
-        hiddenx = (Variable(torch.zeros(self.np.LayerSize, self.batch_size, self.np.HiddenSize)), 
-                Variable(torch.zeros(self.np.LayerSize, self.batch_size, self.np.HiddenSize)))
-        hiddeny = (Variable(torch.zeros(self.np.LayerSize, self.batch_size, self.np.HiddenSize)), 
-                Variable(torch.zeros(self.np.LayerSize, self.batch_size, self.np.HiddenSize)))
-        hiddenw = (Variable(torch.zeros(self.np.LayerSize, self.batch_size, self.np.HiddenSize)), 
-                Variable(torch.zeros(self.np.LayerSize, self.batch_size, self.np.HiddenSize)))
-        hiddenh = (Variable(torch.zeros(self.np.LayerSize, self.batch_size, self.np.HiddenSize)), 
-                Variable(torch.zeros(self.np.LayerSize, self.batch_size, self.np.HiddenSize)))
+        hiddenx = (Variable(torch.zeros(self.np.LayerSize, self.batch_size, self.np.HiddenSize).to(self.device)), 
+                Variable(torch.zeros(self.np.LayerSize, self.batch_size, self.np.HiddenSize).to(self.device)))
+        hiddeny = (Variable(torch.zeros(self.np.LayerSize, self.batch_size, self.np.HiddenSize).to(self.device)), 
+                Variable(torch.zeros(self.np.LayerSize, self.batch_size, self.np.HiddenSize).to(self.device)))
+        hiddenw = (Variable(torch.zeros(self.np.LayerSize, self.batch_size, self.np.HiddenSize).to(self.device)), 
+                Variable(torch.zeros(self.np.LayerSize, self.batch_size, self.np.HiddenSize).to(self.device)))
+        hiddenh = (Variable(torch.zeros(self.np.LayerSize, self.batch_size, self.np.HiddenSize).to(self.device)), 
+                Variable(torch.zeros(self.np.LayerSize, self.batch_size, self.np.HiddenSize).to(self.device)))
         return hiddenx, hiddeny, hiddenw, hiddenh
 
     def forward(self, x, l):
@@ -76,7 +77,7 @@ class YOTMMLP(YOTMWOPM):
         super(YOTMMLP, self).__init__()
         self.np = self.NP()
 
-        self.mlplnet = MlpLNet(batch_size, seq_len, self.np)
+        self.mlplnet = MlpLNet(self.device, batch_size, seq_len, self.np)
      
     def forward(self, x, l):
         batch_size, seq_size, _ = l.size()        

@@ -34,8 +34,9 @@ class YimgNet(nn.Module):
         return c_out
 
 class LstmNet(nn.Module):
-    def __init__(self, batch_size, seq_len, np):
+    def __init__(self, device, batch_size, seq_len, np):
         super(LstmNet, self).__init__()
+        self.device = device
         self.batch_size = batch_size
         self.seq_len = seq_len
         self.np = np
@@ -52,8 +53,8 @@ class LstmNet(nn.Module):
         self.hidden = self.init_hidden()
 
     def init_hidden(self):
-        return (Variable(torch.zeros(self.np.LayerSize, self.batch_size, self.np.HiddenSize)), 
-                Variable(torch.zeros(self.np.LayerSize, self.batch_size, self.np.HiddenSize)))
+        return (Variable(torch.zeros(self.np.LayerSize, self.batch_size, self.np.HiddenSize).to(self.device)), 
+                Variable(torch.zeros(self.np.LayerSize, self.batch_size, self.np.HiddenSize).to(self.device)))
 
     def forward(self, x):
         x, _ = self.lstm(x, self.hidden)
@@ -79,7 +80,7 @@ class YOTMCLSM(YOTMWOPM):
         self.np = self.NP()
 
         self.yimgnet = YimgNet(self.np)
-        self.lstmnet = LstmNet(batch_size, seq_len, self.np)
+        self.lstmnet = LstmNet(self.device, batch_size, seq_len, self.np)
         
      
     def forward(self, x, l):

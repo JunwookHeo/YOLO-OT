@@ -8,8 +8,9 @@ from YOTMWPM import *
 
 
 class YimgNet(nn.Module):
-    def __init__(self, batch_size, seq_len, np):
+    def __init__(self, device, batch_size, seq_len, np):
         super(YimgNet, self).__init__()
+        self.device = device
         self.batch_size = batch_size
         self.seq_len = seq_len
         self.np = np
@@ -23,8 +24,8 @@ class YimgNet(nn.Module):
         self.hidden = self.init_hidden()
 
     def init_hidden(self):
-        return (Variable(torch.zeros(self.np.LayerSize, self.batch_size, self.np.HiddenSize)), 
-                Variable(torch.zeros(self.np.LayerSize, self.batch_size, self.np.HiddenSize)))
+        return (Variable(torch.zeros(self.np.LayerSize, self.batch_size, self.np.HiddenSize).to(self.device)), 
+                Variable(torch.zeros(self.np.LayerSize, self.batch_size, self.np.HiddenSize).to(self.device)))
 
     def forward(self, x):
         batch_size, seq_size, C, H, W = x.size()
@@ -40,8 +41,9 @@ class YimgNet(nn.Module):
 
 
 class LocNet(nn.Module):
-    def __init__(self, batch_size, seq_len, np):
+    def __init__(self, device, batch_size, seq_len, np):
         super(LocNet, self).__init__()
+        self.device = device
         self.batch_size = batch_size
         self.seq_len = seq_len
         self.np = np
@@ -51,8 +53,8 @@ class LocNet(nn.Module):
         self.hidden = self.init_hidden()
         
     def init_hidden(self):
-        return (Variable(torch.zeros(self.np.LayerSize, self.batch_size, self.np.HiddenSize)), 
-                Variable(torch.zeros(self.np.LayerSize, self.batch_size, self.np.HiddenSize)))
+        return (Variable(torch.zeros(self.np.LayerSize, self.batch_size, self.np.HiddenSize).to(self.device)), 
+                Variable(torch.zeros(self.np.LayerSize, self.batch_size, self.np.HiddenSize).to(self.device)))
 
     def forward(self, x):
         batch_size, seq_size, N = x.size()
@@ -82,8 +84,8 @@ class YOTMLLP_PM(YOTMWPM):
         super(YOTMLLP_PM, self).__init__()
         self.np = self.NP()
 
-        self.yimgnet = YimgNet(batch_size, seq_len, self.np)
-        self.locnet = LocNet(batch_size, seq_len, self.np)
+        self.yimgnet = YimgNet(self.device, batch_size, seq_len, self.np)
+        self.locnet = LocNet(self.device, batch_size, seq_len, self.np)
         self.fc = nn.Linear(self.np.HiddenSize, self.np.OutputSize)
      
     def forward(self, x, l):

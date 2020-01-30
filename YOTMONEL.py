@@ -5,8 +5,9 @@ from torch.autograd import Variable
 from YOTMWOPM import *
 
 class OneLNet(nn.Module):
-    def __init__(self, batch_size, seq_len, np):
+    def __init__(self, device, batch_size, seq_len, np):
         super(OneLNet, self).__init__()
+        self.device = device
         self.batch_size = batch_size
         self.seq_len = seq_len
         self.np = np
@@ -18,8 +19,8 @@ class OneLNet(nn.Module):
         self.fc = nn.Linear(self.np.HiddenSize, self.np.OutputSize)
         
     def init_hidden(self):
-        return (Variable(torch.zeros(self.np.LayerSize, self.batch_size, self.np.HiddenSize)), 
-                Variable(torch.zeros(self.np.LayerSize, self.batch_size, self.np.HiddenSize)))
+        return (Variable(torch.zeros(self.np.LayerSize, self.batch_size, self.np.HiddenSize).to(self.device)), 
+                Variable(torch.zeros(self.np.LayerSize, self.batch_size, self.np.HiddenSize).to(self.device)))
 
     def forward(self, x, l):
         batch_size, seq_size, N = l.size()
@@ -42,7 +43,7 @@ class YOTMONEL(YOTMWOPM):
         super(YOTMONEL, self).__init__()
         self.np = self.NP()
 
-        self.lstmlnet = OneLNet(batch_size, seq_len, self.np)
+        self.lstmlnet = OneLNet(self.device, batch_size, seq_len, self.np)
      
     def forward(self, x, l):
         batch_size, seq_size, _ = l.size()        
