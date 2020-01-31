@@ -51,7 +51,7 @@ class RoloDataset(Dataset):
 
             image = np.load(self.images[pos])
             image = torch.from_numpy(image[0]).float()
-            fi = image[0:4096]
+            fi = image
             loc = image[4097:]
 
             label = self.labels[pos].split('\t')   # for gt type 2

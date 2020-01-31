@@ -23,21 +23,18 @@ class RoloNet(nn.Module):
 
     def forward(self, x, l):
         batch_size, seq_size, N = x.size()
-        x = x.view(batch_size*seq_size, N)
+        x = x.view(batch_size, seq_size, N)
 
-        x = x.view(batch_size, seq_size, -1)
-        l = l.view(batch_size, seq_size, -1)
-        c_out = torch.cat((x, l), dim=2)
-        c_out, _ = self.lstm(c_out, self.hidden)
+        c_out, _ = self.lstm(x, self.hidden)
 
-        return c_out[:,:,self.np.OutCnnSize:-1]
+        return c_out[:,:,self.np.OutCnnSize + 1:-1]
 
 class YOTMROLO(YOTMWOPM):
     class NP:
         InfiSize = 4096
         OutfiSize = 4*4
         OutCnnSize = 4096
-        LocSize = 5
+        LocSize = 6
         LocMapSize = 32*32
         InLstmSize = OutCnnSize + LocSize
         HiddenSize = InLstmSize
@@ -51,10 +48,6 @@ class YOTMROLO(YOTMWOPM):
 
     def forward(self, x, l):
         out = self.rolonet(x, l)
-
-        #out = torch.split(out, ROLOMParam.HiddenSize-5, dim=2)
-        #out = torch.split(out[1], 4, dim=2)
-        #return out[0]
 
         return out
 
