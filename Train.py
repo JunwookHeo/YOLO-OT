@@ -144,7 +144,7 @@ class Train(YOT_Base):
         loss = 0
         self.model.train(False)
 
-        eval_list = ListContainer(self.data_path, self.batch_size, self.seq_len, self.img_size, 'validate')
+        eval_list = ListContainer(self.dataset, self.data_path, self.batch_size, self.seq_len, self.img_size, 'validate')
         for dataLoader in eval_list:
             for frames, fis, locs, labels in dataLoader:
                 fis = Variable(fis.to(self.device))

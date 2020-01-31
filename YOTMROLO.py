@@ -12,10 +12,6 @@ class RoloNet(nn.Module):
         self.seq_len = seq_len
         self.np = np
 
-        self.conv1 = nn.Conv2d(128, 64, kernel_size=3, stride=2, padding=1)
-        self.conv2 = nn.Conv2d(64, 32, kernel_size=3, stride=2, padding=1)
-        self.conv3 = nn.Conv2d(32, 16, kernel_size=1)
-
         self.lstm = nn.LSTM(input_size=self.np.InLstmSize, hidden_size=self.np.HiddenSize, 
                             num_layers=self.np.LayerSize, batch_first=True)
 
@@ -26,12 +22,8 @@ class RoloNet(nn.Module):
                 Variable(torch.zeros(self.np.LayerSize, self.batch_size, self.np.HiddenSize).to(self.device)))
 
     def forward(self, x, l):
-        batch_size, seq_size, C, W, H= x.size()
-        x = x.view(batch_size*seq_size, C, H, W)
-
-        x = torch.relu(self.conv1(x))
-        x = torch.relu(self.conv2(x))
-        x = torch.relu(self.conv3(x))
+        batch_size, seq_size, N = x.size()
+        x = x.view(batch_size*seq_size, N)
 
         x = x.view(batch_size, seq_size, -1)
         l = l.view(batch_size, seq_size, -1)
@@ -42,9 +34,9 @@ class RoloNet(nn.Module):
 
 class YOTMROLO(YOTMWOPM):
     class NP:
-        InfiSize = 128*52*52
+        InfiSize = 4096
         OutfiSize = 4*4
-        OutCnnSize = 1*52*52
+        OutCnnSize = 4096
         LocSize = 5
         LocMapSize = 32*32
         InLstmSize = OutCnnSize + LocSize

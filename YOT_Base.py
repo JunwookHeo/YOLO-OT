@@ -14,6 +14,7 @@ class YOT_Base(ABC):
         opt = self.parse_default_config()
 
         self.data_path = opt.data_path
+        self.dataset = opt.dataset
         self.batch_size = opt.batch_size
         self.seq_len = opt.sequence_length
         self.img_size = opt.img_size
@@ -30,6 +31,7 @@ class YOT_Base(ABC):
 
         # default argument
         parser.add_argument("--data_path", type=str, default="../rolo_data", help="path to data config file")
+        parser.add_argument("--dataset", type=str, default="yot", help="sort of dataset. yot, rolo or video")
     
         parser.add_argument("--epochs", type=int, default=30, help="size of epoch")
         parser.add_argument("--batch_size", type=int, default=16, help="size of each image batch")
@@ -50,7 +52,7 @@ class YOT_Base(ABC):
 
         for epoch in range(self.epochs):            
             self.initialize_epoch_processing(epoch)
-            listContainer = ListContainer(self.data_path, self.batch_size, self.seq_len, self.img_size, self.mode)
+            listContainer = ListContainer(self.dataset, self.data_path, self.batch_size, self.seq_len, self.img_size, self.mode)
             for lpos, dataLoader in enumerate(listContainer):
                 path = listContainer.get_list_info(lpos)
                 self.initialize_list_loop(path)

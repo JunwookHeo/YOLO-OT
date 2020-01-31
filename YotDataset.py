@@ -7,7 +7,7 @@ from PIL import Image
 from torch.utils.data import Dataset, DataLoader
 from coord_utils import *
 
-class RoloDataset(Dataset):
+class YotDataset(Dataset):
     """ Loading frames in a video file """
     def __init__(self, path, label, seq_num, img_size, mode):
         self.path = path
@@ -16,8 +16,8 @@ class RoloDataset(Dataset):
         self.img_size = img_size
         self.mode = mode
                 
-        self.frames = sorted(glob.glob("%s/*.*" % os.path.join(path, 'img'))) 
-        self.images= sorted(glob.glob("%s/*.*" % os.path.join(path, 'yolo_out')))
+        self.frames = sorted(glob.glob("%s/*.*" % os.path.join(path, 'images'))) 
+        self.images= sorted(glob.glob("%s/*.*" % os.path.join(path, 'yot_out')))
         
         with open(label, "r") as file:
             self.labels = file.readlines()
@@ -50,9 +50,9 @@ class RoloDataset(Dataset):
             frame = torch.from_numpy(frame)
 
             image = np.load(self.images[pos])
-            image = torch.from_numpy(image[0]).float()
-            fi = image[0:4096]
-            loc = image[4097:]
+            image = torch.from_numpy(image).float()
+            fi = image[0:128*52*52].reshape(128, 52, 52)
+            loc = image[128*52*52:]
 
             label = self.labels[pos].split('\t')   # for gt type 2
             if len(label) < 4:

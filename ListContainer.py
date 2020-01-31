@@ -1,11 +1,17 @@
 import os
 from VideoDataset import *
+from YotDataset import *
 from RoloDataset import *
 
 class VideoLoader:
     @staticmethod
     def getDataset(path, label, seq_num, img_size, mode):
         return VideoDataset(path, label, seq_num, img_size, mode)
+
+class YotLoader:
+    @staticmethod
+    def getDataset(path, label, seq_num, img_size, mode):
+        return YotDataset(path, label, seq_num, img_size, mode)
 
 class RoloLoader:
     @staticmethod
@@ -14,7 +20,7 @@ class RoloLoader:
 
 class ListContainer:
     """ Loading folders which contain datasets """
-    def __init__(self, path, batch_size, seq_num, img_size, mode):
+    def __init__(self, datatype, path, batch_size, seq_num, img_size, mode):
         self.pos = 0
         self.path = path
         self.batch_size = batch_size
@@ -24,15 +30,21 @@ class ListContainer:
 
         paths = [os.path.join(path,fn) for fn in next(os.walk(path))[1]]
         paths = sorted(paths)
-        if len(paths) == 2:
-            l = paths[0].split(os.sep)[-1]
-            v = paths[1].split(os.sep)[-1]
-            if l.lower() == 'labels' and v.lower() == 'videos' :
-                self.load_videos(paths)
-                return
-        
-        self.load_rolo(paths)
-        
+
+        if datatype == 'video':
+            if len(paths) == 2:
+                l = paths[0].split(os.sep)[-1]
+                v = paths[1].split(os.sep)[-1]
+                if l.lower() == 'labels' and v.lower() == 'videos' :
+                    self.load_videos(paths)
+                    return
+        elif datatype == 'rolo':
+            self.load_rolo(paths)
+        elif datatype == 'yot':    
+            self.load_yot(paths)
+        else :
+            raise ValueError
+
     def __iter__(self):
         return self
 
@@ -65,7 +77,7 @@ class ListContainer:
         self.lists = [os.path.join(paths[1],fn) for fn in next(os.walk(paths[1]))[2]]
         self.loader = VideoLoader
 
-    def load_rolo(self, paths):
+    def load_yot(self, paths):
         self.labels = []
         self.lists = []
         for path in paths:
@@ -80,7 +92,25 @@ class ListContainer:
                     self.lists.append(path)
                     #break
 
+        self.loader = YotLoader
+
+    def load_rolo(self, paths):
+        self.labels = []
+        self.lists = []
+        for path in paths:
+            if os.path.exists(os.path.join(os.path.dirname(path),'yolo_out')):
+                self.labels.append(os.path.join(os.path.dirname(path),"groundtruth_rect.txt"))
+                self.lists.append(os.path.dirname(path))
+                break
+            
+            if os.path.exists(os.path.join(path,'yolo_out')):
+                #if path.endswith('MotorRolling') or path.endswith('Singer1'):
+                    self.labels.append(os.path.join(path,"groundtruth_rect.txt"))
+                    self.lists.append(path)
+                    #break
+
         self.loader = RoloLoader
+
 
     def get_list_info(self, pos):
         name = os.path.dirname(self.labels[pos])
