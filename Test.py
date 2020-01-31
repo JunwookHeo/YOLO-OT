@@ -18,6 +18,7 @@ from YOTMLLP_PM import *
 
 from coord_utils import *
 from logger import logger as LOG
+import pandas as pd
 
 class Test(YOT_Base):
     def __init__(self,argvs = []):
@@ -67,9 +68,10 @@ class Test(YOT_Base):
             iou = coord_utils.bbox_iou(torch.stack(predict_boxes, dim=0),  targets, False)
             yiou = coord_utils.bbox_iou(yolo_predicts.float(),  targets, False)
             LOG.debug(f"\t{lpos}-{dpos} IOU : {iou} - {yiou}")
-            self.Total_Iou[0] += float(torch.sum(iou))
-            self.Total_Iou[1] += float(torch.sum(yiou))
-            self.Total_cnt += len(iou) 
+
+            self.each_iou[0] += float(torch.sum(iou))
+            self.each_iou[1] += float(torch.sum(yiou))
+            self.each_iou[2] += len(iou) 
 
     def pre_proc(self):
         m = importlib.import_module(self.model_name)
@@ -81,6 +83,8 @@ class Test(YOT_Base):
 
         self.strtime = time.strftime("%Y%m%d_%H%M%S")
 
+        self.Report = pd.DataFrame(columns={'YOT', 'YOLO'})
+
     def post_proc(self):
         LOG.info(f'\n{self.model}')
 
@@ -88,6 +92,7 @@ class Test(YOT_Base):
         self.list_name = name
         if self.save_coord_list:
             self.list_log = np.empty((0, 3, 4), int)
+        self.each_iou = [0., 0., 0]
 
     def finalize_list_loop(self):
         if self.save_coord_list:
@@ -96,13 +101,18 @@ class Test(YOT_Base):
                 os.makedirs(path)
             name = os.path.join(path, self.list_name)
             np.save(name, self.list_log)
+        
+        self.Total_Iou[0] += float(self.each_iou[0])
+        self.Total_Iou[1] += float(self.each_iou[1])
+        self.Total_Iou[2] += self.each_iou[2]
+        self.Report = self.Report.append({'YOT':self.each_iou[0]/ self.each_iou[2], 'YOLO':self.each_iou[1]/ self.each_iou[2]}, ignore_index=True)
+        print(self.Report)
 
     def initialize_epoch_processing(self, epoch):
-        self.Total_Iou = [0., 0.]
-        self.Total_cnt = 0
+        self.Total_Iou = [0., 0., 0]
 
     def finalize_epoch_processing(self, epoch):
-        LOG.info("Avg IOU : YOT={:f}, YOLO={:f}".format(self.Total_Iou[0]/self.Total_cnt, self.Total_Iou[1]/self.Total_cnt))
+        LOG.info("Avg IOU : YOT={:f}, YOLO={:f}".format(self.Total_Iou[0]/self.Total_Iou[2], self.Total_Iou[1]/self.Total_Iou[2]))
 
     def display_frame(self, fs, ps, ys, ts):
         def draw_rectangle(img, p, c, l):            
