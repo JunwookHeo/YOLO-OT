@@ -1,6 +1,7 @@
 import os
 from VideoDataset import *
 from YotDataset import *
+from YotGtDataset import *
 from RoloDataset import *
 
 class VideoLoader:
@@ -9,6 +10,11 @@ class VideoLoader:
         return VideoDataset(path, label, seq_num, img_size, mode)
 
 class YotLoader:
+    @staticmethod
+    def getDataset(path, label, seq_num, img_size, mode):
+        return YotDataset(path, label, seq_num, img_size, mode)
+
+class YotGtLoader:
     @staticmethod
     def getDataset(path, label, seq_num, img_size, mode):
         return YotDataset(path, label, seq_num, img_size, mode)
@@ -42,6 +48,8 @@ class ListContainer:
             self.load_rolo(paths)
         elif datatype == 'yot':    
             self.load_yot(paths)
+        elif datatype == 'yotgt':    
+            self.load_yotgt(paths)
         else :
             raise ValueError
 
@@ -93,6 +101,23 @@ class ListContainer:
                     #break
 
         self.loader = YotLoader
+
+    def load_yotgt(self, paths):
+        self.labels = []
+        self.lists = []
+        for path in paths:
+            if os.path.exists(os.path.join(os.path.dirname(path),'images')):
+                self.labels.append(os.path.join(os.path.dirname(path),"groundtruth_rect.txt"))
+                self.lists.append(os.path.dirname(path))
+                break
+            
+            if os.path.exists(os.path.join(path,'images')):
+                #if path.endswith('MotorRolling') or path.endswith('Singer1'):
+                    self.labels.append(os.path.join(path,"groundtruth_rect.txt"))
+                    self.lists.append(path)
+                    #break
+
+        self.loader = YotGtLoader
 
     def load_rolo(self, paths):
         self.labels = []
