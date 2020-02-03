@@ -7,7 +7,7 @@ from PIL import Image
 from torch.utils.data import Dataset, DataLoader
 from coord_utils import *
 
-class YotDataset(Dataset):
+class YotGtDataset(Dataset):
     """ Loading frames in a video file """
     def __init__(self, path, label, seq_num, img_size, mode):
         self.path = path

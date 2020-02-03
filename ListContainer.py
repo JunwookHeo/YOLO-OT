@@ -17,7 +17,7 @@ class YotLoader:
 class YotGtLoader:
     @staticmethod
     def getDataset(path, label, seq_num, img_size, mode):
-        return YotDataset(path, label, seq_num, img_size, mode)
+        return YotGtDataset(path, label, seq_num, img_size, mode)
 
 class RoloLoader:
     @staticmethod
