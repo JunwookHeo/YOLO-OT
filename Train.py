@@ -23,9 +23,16 @@ from coord_utils import *
 from logger import logger as LOG
 
 class Train(YOT_Base):
-    def __init__(self,argvs = []):
+    class Results:
+        def __init__(self):
+            self.sum_loss = 0
+            self.sum_iou = [0, 0]
+            self.frame_cnt = 0
+
+    def __init__(self, argvs = []):
         super(Train, self).__init__(argvs)
         
+        self.isTrainWithGt = True
         self.log_interval = 1
         self.result_columns=['Train_Loss', 'Validate_Loss', 'Train_YOT_IoU', 'Validate_YOT_IoU']
         self.Report = pd.DataFrame(columns=self.result_columns)
@@ -53,7 +60,42 @@ class Train(YOT_Base):
         args, _ = parser.parse_known_args()
         return args
 
-    def processing(self, epoch, lpos, dpos, frames, fis, locs, labels):
+    def proc(self):
+        self.pre_proc()
+
+        for epoch in range(self.epochs):
+            eresult = self.initialize_epoch_processing(epoch)
+
+            listContainer = ListContainer(self.dataset, self.data_path, self.batch_size, self.seq_len, self.img_size, self.mode)
+            for lpos, dataLoader in enumerate(listContainer):
+                path = listContainer.get_list_info(lpos)
+                self.initialize_list_loop(path)
+                for dpos, (frames, fis, locs, labels) in enumerate(dataLoader):
+                    fis = Variable(fis.to(self.device))
+                    locs = Variable(locs.to(self.device))
+                    labels = Variable(labels.to(self.device), requires_grad=False)
+
+                    self.processing(epoch, lpos, dpos, frames, fis, locs, labels, eresult)
+                    self.train_with_gt(epoch, lpos, dpos, frames, fis, locs, labels, eresult)
+
+                self.finalize_list_loop()
+            self.finalize_epoch_processing(epoch, eresult)     
+        self.post_proc()
+
+    def train_with_gt(self, epoch, lpos, dpos, frames, fis, locs, labels, result):
+        # Traing with labels.
+        if self.isTrainWithGt == True:
+            w = frames.size(3)
+            h = frames.size(2)
+            
+            locs[:, :, 0] = labels[:, :, 0]/w
+            locs[:, :, 1] = labels[:, :, 1]/h
+            locs[:, :, 2] = labels[:, :, 2]/w
+            locs[:, :, 3] = labels[:, :, 3]/h
+            locs[:, :, 4] = 1
+            self.processing(epoch, lpos, dpos, frames, fis, locs, labels, result)
+
+    def processing(self, epoch, lpos, dpos, frames, fis, locs, labels, result):
         outputs = self.model(fis, locs)
         
         img_frames = self.get_last_sequence(frames)
@@ -70,8 +112,8 @@ class Train(YOT_Base):
         self.optimizer.step()
         self.optimizer.zero_grad()
 
-        self.sum_loss += float(loss.data)
-        self.frame_cnt += len(predicts)
+        result.sum_loss += float(loss.data)
+        result.frame_cnt += len(predicts)
         
         if dpos % self.log_interval == 0:
             LOG.info('Train pos: {}-{}-{} [Loss: {:.6f}]'.format(epoch, lpos, dpos, loss.data/len(predicts)))
@@ -86,8 +128,9 @@ class Train(YOT_Base):
                 LOG.debug(f"\tPredict:{p.cpu().int().data.numpy()},    YOLO:{y[0:4].cpu().int().data.numpy()},    GT:{t.cpu().int().data.numpy()}")
             iou = coord_utils.bbox_iou(torch.stack(predict_boxes, dim=0),  torch.stack(target_boxes, dim=0), False)
             yiou = coord_utils.bbox_iou(torch.stack(yolo_boxes, dim=0),  torch.stack(target_boxes, dim=0), False)
-            self.sum_iou[0] += float(torch.sum(iou))
-            self.sum_iou[1] += float(torch.sum(yiou))
+
+            result.sum_iou[0] += float(torch.sum(iou))
+            result.sum_iou[1] += float(torch.sum(yiou))
                         
             LOG.info(f"\tIOU : {iou.data}")
     
@@ -114,14 +157,16 @@ class Train(YOT_Base):
         pass
 
     def initialize_epoch_processing(self, epoch):
-        self.sum_loss = 0
-        self.sum_iou = [0, 0]
-        self.frame_cnt = 0
+        return self.Results()
 
-    def finalize_epoch_processing(self, epoch):
-        avg_loss = self.sum_loss/self.frame_cnt
-        train_iou = [self.sum_iou[0]/self.frame_cnt, self.sum_iou[1]/self.frame_cnt]
-        validate_loss, validate_iou = self.evaluation()        
+    def finalize_epoch_processing(self, epoch, result):
+        avg_loss = result.sum_loss/result.frame_cnt
+        train_iou = [result.sum_iou[0]/result.frame_cnt, result.sum_iou[1]/result.frame_cnt]
+
+        eval_result = self.evaluation()
+        validate_loss = float(eval_result.sum_loss/eval_result.frame_cnt)
+        validate_iou = [eval_result.sum_iou[0]/eval_result.frame_cnt, eval_result.sum_iou[1]/eval_result.frame_cnt]
+
         self.model.train()
         
         if self.save_weights is True:
@@ -139,9 +184,7 @@ class Train(YOT_Base):
         LOG.info(f'LR={self.lr}')
 
     def evaluation(self):
-        total_iou = [0, 0]
-        total_cnt = 0
-        loss = 0
+        eresult = self.Results()
         self.model.train(False)
 
         eval_list = ListContainer(self.dataset, self.data_path, self.batch_size, self.seq_len, self.img_size, 'validate')
@@ -164,7 +207,7 @@ class Train(YOT_Base):
                         norm_targets[i] = coord_utils.location_to_normal(f.shape[1], f.shape[0], l)
                     
                     target_values = self.model.get_targets(norm_targets)
-                    loss += self.loss(predicts, target_values)
+                    eresult.sum_loss += self.loss(predicts, target_values)
 
                     predict_boxes = []
                     for i, (f, o, y) in enumerate(zip(img_frames, predicts, yolo_predicts)):
@@ -174,11 +217,11 @@ class Train(YOT_Base):
                         
                     iou = coord_utils.bbox_iou(torch.stack(predict_boxes, dim=0),  targets, False)
                     yiou = coord_utils.bbox_iou(yolo_predicts.float(),  targets, False)
-                    total_iou[0] += float(torch.sum(iou))
-                    total_iou[1] += float(torch.sum(yiou))
-                    total_cnt += len(iou)
+                    eresult.sum_iou[0] += float(torch.sum(iou))
+                    eresult.sum_iou[1] += float(torch.sum(yiou))
+                    eresult.frame_cnt += len(iou)
         
-        return float(loss/total_cnt), [float(total_iou[0]/total_cnt), float(total_iou[1]/total_cnt)]
+        return eresult 
 
 
 def main(argvs):
