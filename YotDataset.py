@@ -32,7 +32,7 @@ class YotDataset(Dataset):
             end_pos = int(self.num_frames*0.8)
             self.num_frames = end_pos - self.start_pos        
         elif self.mode is 'test':
-            self.start_pos = int(self.num_frames*0.8)
+            self.start_pos = int(self.num_frames*0.6)
             self.num_frames = self.num_frames - self.start_pos
         
     def __len__(self):

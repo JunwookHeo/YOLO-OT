@@ -32,7 +32,7 @@ class Train(YOT_Base):
     def __init__(self, argvs = []):
         super(Train, self).__init__(argvs)
         
-        self.isTrainWithGt = True
+        self.isTrainWithGt = False
         self.log_interval = 1
         self.result_columns=['Train_Loss', 'Validate_Loss', 'Train_YOT_IoU', 'Validate_YOT_IoU']
         self.Report = pd.DataFrame(columns=self.result_columns)
@@ -51,7 +51,7 @@ class Train(YOT_Base):
         parser = argparse.ArgumentParser()
         
         parser.add_argument("--data_path", type=str, default="../rolo_data", help="path to data config file")
-        parser.add_argument("--epochs", type=int, default=50, help="size of epoch")
+        parser.add_argument("--epochs", type=int, default=100, help="size of epoch")
         parser.add_argument("--save_weights", type=bool, default=True, help="save checkpoint and weights")
         parser.add_argument("--run_mode", type=str, default="train", help="train, validate or test mode")
         parser.add_argument("--model_name", type=str, default="YOTMLLP", help="class name of the model")

@@ -15,9 +15,9 @@ class CreateGT(object):
 
     def parse_config(self):
         ap = argparse.ArgumentParser()
-        ap.add_argument("--mode", default="vrolo", help="vtoi:video to image files, vyolo:view yolo gt, \
+        ap.add_argument("--mode", default="cgt_yot", help="vtoi:video to image files, vyolo:view yolo gt, \
                         vrolo: view rolo rt, cgt_yolo:create gt for yolo, cgt_yot:create gt for yot")
-        ap.add_argument("--image_path", default="../rolo_data_2/Walking", help="Path to the image/video file or dir")
+        ap.add_argument("--image_path", default="../Tennis/Tennis_01/images", help="Path to the image/video file or dir")
         args, _ = ap.parse_known_args()
         return args
     
@@ -146,11 +146,17 @@ class CreateGT(object):
 
     def cgt(self, path):
         files = [f for f in os.listdir(path) if f.lower().endswith(('.png', '.jpg'))]
+        files.sort()
         pos = 0
         end = len(files)
         isRun = True
         gt = self.CGT()
-        gt.gt = np.zeros((end, 4), dtype=float)
+        if self.mode == 'cgt_yot':            
+            name = os.path.join(os.path.dirname(path), 'groundtruth_rect.txt')
+            if os.path.exists(name):
+                gt.gt = np.loadtxt(name, delimiter=',')
+            else:
+                gt.gt = np.zeros((end, 4), dtype=float)
         gt.img_name = self.image_path
 
         while(isRun):
@@ -227,7 +233,7 @@ class CreateGT(object):
             cv2.imshow(gt.img_name, img)
             cv2.displayStatusBar(gt.img_name, f'{gt.pos} : {rect}')
             print(gt.pos, rect)
-            if gt.mode == 'cgt_yolo':                
+            if gt.mode == 'cgt_yolo': # # (X1, Y1, W, H) ==> (Cx, Cy, W, H)      
                 rect[0] = (rect[0] + rect[2]/2)/gt.img_size[0]
                 rect[1] = (rect[1] + rect[3]/2)/gt.img_size[1]
                 rect[2] = rect[2]/gt.img_size[0]

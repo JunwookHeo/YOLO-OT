@@ -69,7 +69,7 @@ class YOTMMLP(YOTMWOPM):
     class NP:
         LocSize = 5
         LocMapSize = 32*32
-        HiddenSize = 128
+        HiddenSize = 64
         LayerSize = 1
         OutputSize = 4
         
