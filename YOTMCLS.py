@@ -13,17 +13,12 @@ class YimgNet(nn.Module):
         self.conv2 = nn.Conv2d(64, 32, kernel_size=3, stride=2, padding=1)
         self.conv3 = nn.Conv2d(32, 16, kernel_size=1)
         
-        self.fc = nn.Linear(self.np.LocSize, self.np.LocMapSize)
-
     def forward(self, x, l):
         batch_size, seq_size, C, H, W = x.size()
         x = x.view(batch_size*seq_size, C, H, W)
         x = torch.relu(self.conv1(x))
         x = torch.relu(self.conv2(x))
         x = torch.relu(self.conv3(x))
-
-        l = l.view(batch_size*seq_size, -1)
-        l = self.fc(l)
 
         x = x.view(batch_size, seq_size, -1)
         l = l.view(batch_size, seq_size, -1)
@@ -66,8 +61,8 @@ class YOTMCLS(YOTMWOPM):
         OutCnnSize = OutfiSize
         LocSize = 5
         LocMapSize = 32*32
-        InLstmSize = OutCnnSize + LocMapSize
-        HiddenSize = 2048
+        InLstmSize = OutCnnSize + LocSize
+        HiddenSize = 256
         LayerSize = 1
         OutputSize = 4
         

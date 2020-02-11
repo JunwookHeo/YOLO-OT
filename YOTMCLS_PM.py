@@ -42,7 +42,7 @@ class LstmNet_PM(nn.Module):
         self.lstm = nn.LSTM(input_size=self.np.InLstmSize, hidden_size=self.np.HiddenSize, 
                             num_layers=self.np.LayerSize, batch_first=True)
 
-        self.fc = nn.Linear(self.np.HiddenSize, self.np.OutputSize)
+        #self.fc = nn.Linear(self.np.HiddenSize, self.np.OutputSize)
         
         self.hidden = self.init_hidden()
 
@@ -52,7 +52,7 @@ class LstmNet_PM(nn.Module):
 
     def forward(self, x):
         c_out, _ = self.lstm(x, self.hidden)
-        c_out = self.fc(c_out)
+        #c_out = self.fc(c_out)
         return c_out
 
 class YOTMCLS_PM(YOTMWPM):
@@ -63,7 +63,7 @@ class YOTMCLS_PM(YOTMWPM):
         LocSize = 5
         LocMapSize = 32
         InLstmSize = OutCnnSize + LocMapSize*LocMapSize
-        HiddenSize = 2048 
+        HiddenSize = 1024 
         LayerSize = 1
         OutputSize = LocMapSize*LocMapSize
         
