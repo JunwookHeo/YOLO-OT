@@ -40,7 +40,7 @@ class MlpLNet(nn.Module):
                 Variable(torch.zeros(self.np.LayerSize, self.batch_size, self.np.HiddenSize).to(self.device)))
         return hiddenx, hiddeny, hiddenw, hiddenh
 
-    def forward(self, x, l):
+    def forward(self, l):
         batch_size, seq_size, N = l.size()
         l = l.view(batch_size, seq_size, -1)
         
@@ -81,6 +81,6 @@ class YOTMMLP(YOTMWOPM):
      
     def forward(self, x, l):
         batch_size, seq_size, _ = l.size()        
-        out = self.mlplnet(x, l)
+        out = self.mlplnet(l)
         return out
     

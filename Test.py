@@ -73,7 +73,8 @@ class Test(YOT_Base):
         m = importlib.import_module(self.model_name)
         mobj = getattr(m, self.model_name)
         self.model = mobj(self.batch_size, self.seq_len).to(self.device)
-
+        LOG.info(f'\n{self.model}')
+        
         self.model.load_weights(self.model, self.weights_path)
         self.model.eval()  # Set in evaluation mode
 
