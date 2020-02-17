@@ -16,7 +16,7 @@ The input of YOTMCLS consists of the image feature and coordinates of an image f
 
 LSTM for each coordinate is seperated in the YOTMMLP model, so Cx, Cy, W, H are independently predicted.
 
-![image](https://drive.google.com/uc?export=view&id=12MAa3HkYrg1tKF6t0AaxmqV5vP6xY7Wz)
+![image](https://drive.google.com/uc?export=view&id=1fnkc93bKByZNVaBa5_RmuAPXN83wRnD7)
 
 
 
