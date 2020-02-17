@@ -8,7 +8,8 @@ This project aims to develop a neural network to track a tennis ball using YOLO 
 
 The input of YOTMCLS consists of the image feature and coordinates of an image from the YOLO output. The location of an object is predicted from LSTM.
 
-[image](https://drive.google.com/uc?export=view&id=1umyAOEqrn5pXMiXq8tnvpKNrqHdqYFQq)
+
+![image](https://drive.google.com/uc?export=view&id=1umyAOEqrn5pXMiXq8tnvpKNrqHdqYFQq)
 
 
 ### YOTMMLP
