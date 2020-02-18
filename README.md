@@ -25,7 +25,7 @@ The coordinates are converted into probability map and then fed to LSTM. The out
 
 ### 1.3 YOTMMLP
 
-LSTM for each coordinate is seperated in the YOTMMLP model, so Cx, Cy, W, H are independently predicted.
+LSTM for each coordinate is separated in the YOTMMLP model, so Cx, Cy, W, H are independently predicted.
 
 ![image](https://drive.google.com/uc?export=view&id=1fnkc93bKByZNVaBa5_RmuAPXN83wRnD7)
 
@@ -35,6 +35,30 @@ LSTM for each coordinate is seperated in the YOTMMLP model, so Cx, Cy, W, H are 
 
 Python 3.7  
 PyTorch 1.3  
+
+## 3. Test Results
+
+
+### 3.1 YOTMCLS
+
+### 3.2 YOTMPMO
+This model shows poor performance with overfitting.
+
+![image](https://drive.google.com/uc?export=view&id=1sulOkpk7Y226fUaJuwtd1iUX7ryOQuOo)
+
+### 3.3 YOTMMLP
+With 64 of hidden size, YOTMMLP shows good performance.
+
+![image](https://drive.google.com/uc?export=view&id=1LpP4XcTehhcv-mqvGka6HgErITCdMr0u)
+
+
+### 3.3 YOTMMLP with GT
+
+Ground truth is also sequential data, so training with ground truth and YOLO output will be expected to improve the performance. The result is above. In this case, the hidden size of LSTM is 32 and this model shows slightly better performance than YOTMMLP trained without ground truth.
+
+
+![image](https://drive.google.com/uc?export=view&id=1NqQSlK-rdVeJ6XCkt2oslmzPK6W_bo7n)
+
 
 ## References
 
