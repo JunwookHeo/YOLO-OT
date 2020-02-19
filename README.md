@@ -19,7 +19,7 @@ The coordinates are converted into probability map and then fed to LSTM. The out
 
 <a href="https://www.codecogs.com/eqnedit.php?latex=\\&space;C_x&space;=&space;\frac{1}{n}&space;\sum^{n-1}_{0}&space;\sum^{n-1}_{0}&space;(x_{ij}&space;&plus;&space;0.5)&space;\&space;\&space;\&space;\&space;if&space;\&space;P_{ij}&space;>=&space;0.5&space;\\&space;C_y&space;=&space;\frac{1}{n}&space;\sum^{n-1}_{0}&space;\sum^{n-1}_{0}&space;(y_{ij}&space;&plus;&space;0.5)&space;\&space;\&space;\&space;\&space;if&space;\&space;P_{ij}&space;>=&space;0.5&space;\\&space;W&space;=&space;0.5&space;&plus;&space;k&space;\sqrt{&space;\sum^{n-1}_{0}&space;\sum^{n-1}_{0}&space;(x_{ij}&space;-&space;C_x)^2}&space;\&space;\&space;\&space;\&space;if&space;\&space;P_{ij}&space;>=&space;0.5&space;\\&space;H&space;=&space;0.5&space;&plus;&space;k&space;\sqrt{&space;\sum^{n-1}_{0}&space;\sum^{n-1}_{0}&space;(y_{ij}&space;-&space;C_y)^2}&space;\&space;\&space;\&space;\&space;if&space;\&space;P_{ij}&space;>=&space;0.5&space;\\" target="_blank"><img src="https://latex.codecogs.com/gif.latex?\\&space;C_x&space;=&space;\frac{1}{n}&space;\sum^{n-1}_{0}&space;\sum^{n-1}_{0}&space;(x_{ij}&space;&plus;&space;0.5)&space;\&space;\&space;\&space;\&space;if&space;\&space;P_{ij}&space;>=&space;0.5&space;\\&space;C_y&space;=&space;\frac{1}{n}&space;\sum^{n-1}_{0}&space;\sum^{n-1}_{0}&space;(y_{ij}&space;&plus;&space;0.5)&space;\&space;\&space;\&space;\&space;if&space;\&space;P_{ij}&space;>=&space;0.5&space;\\&space;W&space;=&space;0.5&space;&plus;&space;k&space;\sqrt{&space;\sum^{n-1}_{0}&space;\sum^{n-1}_{0}&space;(x_{ij}&space;-&space;C_x)^2}&space;\&space;\&space;\&space;\&space;if&space;\&space;P_{ij}&space;>=&space;0.5&space;\\&space;H&space;=&space;0.5&space;&plus;&space;k&space;\sqrt{&space;\sum^{n-1}_{0}&space;\sum^{n-1}_{0}&space;(y_{ij}&space;-&space;C_y)^2}&space;\&space;\&space;\&space;\&space;if&space;\&space;P_{ij}&space;>=&space;0.5&space;\\" title="\\ C_x = \frac{1}{n} \sum^{n-1}_{0} \sum^{n-1}_{0} (x_{ij} + 0.5) \ \ \ \ if \ P_{ij} >= 0.5 \\ C_y = \frac{1}{n} \sum^{n-1}_{0} \sum^{n-1}_{0} (y_{ij} + 0.5) \ \ \ \ if \ P_{ij} >= 0.5 \\ W = 0.5 + k \sqrt{ \sum^{n-1}_{0} \sum^{n-1}_{0} (x_{ij} - C_x)^2} \ \ \ \ if \ P_{ij} >= 0.5 \\ H = 0.5 + k \sqrt{ \sum^{n-1}_{0} \sum^{n-1}_{0} (y_{ij} - C_y)^2} \ \ \ \ if \ P_{ij} >= 0.5 \\" /></a>
 
-![image](https://github.com/JunwookHeo/YOLO-OT/blob/master/Report/YOTMPMO.png)
+![YOTMPMO](https://github.com/JunwookHeo/YOLO-OT/blob/master/Report/YOTMPMO.png)
 
 
 
@@ -27,7 +27,7 @@ The coordinates are converted into probability map and then fed to LSTM. The out
 
 LSTM for each coordinate is separated in the YOTMMLP model, so Cx, Cy, W, H are independently predicted.
 
-![image](https://github.com/JunwookHeo/YOLO-OT/blob/master/Report/YOTMMLP.png)
+![YOTMMLP](https://github.com/JunwookHeo/YOLO-OT/blob/master/Report/YOTMMLP.png)
 
 
 
@@ -44,14 +44,14 @@ PyTorch 1.3
 ### 3.2 YOTMPMO
 This model shows poor performance with overfitting.
 
-![image](https://github.com/JunwookHeo/YOLO-OT/blob/master/Report/Result_YOTMPMO.png)
+![YOTMPMO](https://github.com/JunwookHeo/YOLO-OT/blob/master/Report/Result_YOTMPMO.png)
 
 
 
 ### 3.3 YOTMMLP
 With 64 of hidden size, YOTMMLP shows good performance.
 
-![image](https://github.com/JunwookHeo/YOLO-OT/blob/master/Report/Result_YOTMMLP.png)
+![YOTMMLP](https://github.com/JunwookHeo/YOLO-OT/blob/master/Report/Result_YOTMMLP.png)
 
 
 ### 3.3 YOTMMLP with GT
@@ -59,7 +59,7 @@ With 64 of hidden size, YOTMMLP shows good performance.
 Ground truth is also sequential data, so training with ground truth and YOLO output will be expected to improve the performance. The result is above. In this case, the hidden size of LSTM is 32 and this model shows slightly better performance than YOTMMLP trained without ground truth.
 
 
-![image](https://github.com/JunwookHeo/YOLO-OT/blob/master/Report/Result_YOTMMLP_with_GT.png)
+![YOTMMLP with GT](https://github.com/JunwookHeo/YOLO-OT/blob/master/Report/Result_YOTMMLP_with_GT.png)
 
 
 ## References
