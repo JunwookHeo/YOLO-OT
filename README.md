@@ -36,25 +36,34 @@ LSTM for each coordinate is separated in the YOTMMLP model, so Cx, Cy, W, H are 
 Python 3.7  
 PyTorch 1.3  
 
-## 3. Test Results
+## 3. Dataset and Training
 
+### 3.1 Dataset
 
-### 3.1 YOTMCLS
+To train YOT, 27 of TB-100 data from http://cvlab.hanyang.ac.kr/tracker_benchmark/datasets.html are used.
 
-### 3.2 YOTMPMO
+### 3.2 Training
+
+60% frames of each video clip are used to train the networks and 20% frames of them are used to validate them. The IoT scores of training and validating sets of YOLO outputs are 0.641 and 0.646.
+
+## 4. Test Results
+
+### 4.1 YOTMCLS
+
+### 4.2 YOTMPMO
 This model shows poor performance with overfitting.
 
 ![YOTMPMO](https://github.com/JunwookHeo/YOLO-OT/blob/master/Report/Result_YOTMPMO.png)
 
 
 
-### 3.3 YOTMMLP
+### 4.3 YOTMMLP
 With 64 of hidden size, YOTMMLP shows good performance.
 
 ![YOTMMLP](https://github.com/JunwookHeo/YOLO-OT/blob/master/Report/Result_YOTMMLP.png)
 
 
-### 3.3 YOTMMLP with GT
+### 4.3 YOTMMLP with GT
 
 Ground truth is also sequential data, so training with ground truth and YOLO output will be expected to improve the performance. The result is above. In this case, the hidden size of LSTM is 32 and this model shows slightly better performance than YOTMMLP trained without ground truth.
 
