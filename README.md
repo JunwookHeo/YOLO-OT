@@ -44,7 +44,7 @@ PyTorch 1.3
 ### 3.2 YOTMPMO
 This model shows poor performance with overfitting.
 
-![image](https://drive.google.com/uc?export=view&id=1ayQWXQ9VW5zZDVgEB9ebelCUtu1LnKqR)
+![image](https://drive.google.com/uc?export=view&id=1sulOkpk7Y226fUaJuwtd1iUX7ryOQuOo)
 
 
 ### 3.3 YOTMMLP
