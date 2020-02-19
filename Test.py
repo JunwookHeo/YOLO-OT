@@ -58,7 +58,7 @@ class Test(YOT_Base):
                 predict_boxes.append(coord_utils.normal_to_location(f.size(1), f.size(0), o.clamp(min=0)))
                 yolo_predicts[i] = coord_utils.normal_to_location(f.size(1), f.size(0), y.clamp(min=0))
 
-            self.display_frame(img_frames, torch.stack(predict_boxes, dim=0), yolo_predicts, targets)
+            self.display_frame(dpos, img_frames, torch.stack(predict_boxes, dim=0), yolo_predicts, targets)
             self.append_coord_log(torch.stack(predict_boxes, dim=0), yolo_predicts, targets)
 
             iou = coord_utils.bbox_iou(torch.stack(predict_boxes, dim=0),  targets, False)
@@ -111,7 +111,7 @@ class Test(YOT_Base):
     def finalize_epoch_processing(self, epoch):
         LOG.info("Avg IOU : YOT={:f}, YOLO={:f}".format(self.Total_Iou[0]/self.Total_Iou[2], self.Total_Iou[1]/self.Total_Iou[2]))
 
-    def display_frame(self, fs, ps, ys, ts):
+    def display_frame(self, dpos, fs, ps, ys, ts):
         def draw_rectangle(img, p, c, l):            
             c1 = ((p[0] - p[2]/2.).int(), (p[1] - p[3]/2.).int())
             c2 = ((p[0] + p[2]/2.).int(), (p[1] + p[3]/2.).int())
@@ -125,6 +125,13 @@ class Test(YOT_Base):
             draw_rectangle(img, p, (0, 255, 0), 2)
             # Draw rectangle from Target
             draw_rectangle(img, t, (0, 0, 255), 1)
+
+            if(isSave == True):
+                if(dpos == 0):
+                    fourcc = cv2.VideoWriter_fourcc(*'MP4V')
+                    self.ovideo = cv2.VideoWriter(f'outputs/{self.list_name}.mp4', fourcc, 20.0, (f.size(1), f.size(0)))
+
+                self.ovideo.write(img)
 
             cv2.imshow("frame", img)
             cv2.waitKey(1)
