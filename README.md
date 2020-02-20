@@ -48,7 +48,7 @@ To train YOT, 27 of TB-100 data from http://cvlab.hanyang.ac.kr/tracker_benchmar
 
 ### 3.3 Default value of coordinates
 
-The default value of coordinates of a predicted object from YOLO V3 is (0, 0, 0, 0, 0) when the object is not detected. However, using Cx=0 and Cy=0 may make a bias because (0, 0) means left-top in an image. In this project, (0.5, 0.5, 0, 0, 0) is used as the default value for undetected object.
+The default value of coordinates of a predicted object from YOLO V3 is (0, 0, 0, 0, 0) when the object is not detected. However, using Cx=0 and Cy=0 may make a bias because (0, 0) means left-top in an image. In this project, (0.5, 0.5, 0, 0, 0) is used as a default value for undetected objects.
 
 
 ## 4. Test Results
