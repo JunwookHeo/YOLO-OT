@@ -55,6 +55,11 @@ The default value of coordinates of a predicted object from YOLO V3 is (0, 0, 0,
 
 ### 4.1 YOTMCLS
 
+This model does not show good performance. The image feature seems to reduce the performance due to the complexity .
+
+![YOTMCLS](https://github.com/JunwookHeo/YOLO-OT/blob/master/Report/Result_YOTMCLS.png)
+
+
 ### 4.2 YOTMPMO
 This model shows poor performance with overfitting.
 
