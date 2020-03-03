@@ -80,7 +80,7 @@ Demo videos are available.
 
 ### 4.3 YOTMMLP with GT
 
-Ground truth is also sequential data, so training with ground truth and YOLO output will be expected to improve the performance. The result is above. In this case, the hidden size of LSTM is 32 and this model shows slightly better performance than YOTMMLP trained without ground truth.
+Ground truth is also sequential data, so training with ground truth and YOLO output will be expected to improve the performance. With 32 of the hidden size of LSTM, this model shows slightly better performance than YOTMMLP trained without ground truth.
 
 
 ![YOTMMLP with GT](https://github.com/JunwookHeo/YOLO-OT/blob/master/Report/Result_YOTMMLP_with_GT.png)
